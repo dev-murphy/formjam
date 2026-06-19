@@ -13,7 +13,8 @@ dist-ssr
 *.local
 
 # AI
-.claudeis 
+.claude
+memory/
 
 # Envs
 .env
@@ -24,6 +25,7 @@ dist-ssr
 # Playwright
 test-results/
 playwright-report/
+playwright/.auth/
 
 # Editor directories and files
 .vscode/*

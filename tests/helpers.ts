@@ -1,4 +1,32 @@
-import { Page, expect } from "@playwright/test";
+import { Page, Response, expect } from "@playwright/test";
+
+// Email domain used for accounts created by the signup tests, so the cleanup
+// teardown can identify and sweep them without touching real users.
+export const TEST_EMAIL_DOMAIN = "formjam-e2e.test";
+
+// Clicks the login submit button and returns the auth-with-password response,
+// transparently retrying past PocketBase's 429 ("Too Many Requests") responses
+// with linear backoff. The suite fires many real logins in parallel, which trips
+// the auth endpoint's rate limiter; without this, an otherwise-valid login (or
+// the expected-400 failure test) flakes whenever it draws the 429.
+export async function submitLoginForm(page: Page): Promise<Response> {
+  const maxAttempts = 6;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    const responsePromise = page.waitForResponse(
+      (resp) =>
+        resp.url().includes("/api/collections/users/auth-with-password") &&
+        resp.request().method() === "POST",
+      { timeout: 15_000 },
+    );
+    await page.locator('[data-cy="login_submit_btn"]').click();
+    const response = await responsePromise;
+
+    if (response.status() !== 429 || attempt === maxAttempts) return response;
+    await page.waitForTimeout(500 * attempt); // back off, then resubmit
+  }
+  // Unreachable: the loop always returns on the final attempt.
+  throw new Error("submitLoginForm: exhausted retries");
+}
 
 export async function login(
   page: Page,
@@ -16,9 +44,11 @@ export async function login(
   await page.locator('[data-cy="login_email_input"]').clear();
   await page.locator('[data-cy="login_email_input"]').fill(userEmail);
   await page.locator('[data-cy="login_password_input"]').fill(userPassword);
-  await page.locator('[data-cy="login_submit_btn"]').click();
+
+  const response = await submitLoginForm(page);
 
   if (userExists) {
+    expect(response.status()).toBe(200);
     await expect(page).toHaveURL(/\/dashboard/);
   }
 }

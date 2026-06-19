@@ -20,7 +20,7 @@ export const useFormStore = defineStore("forms", {
         return state.forms;
       }
       return state.forms.filter((form) =>
-        form.title.toLowerCase().includes(state.searchTerm.toLowerCase())
+        form.title.toLowerCase().includes(state.searchTerm.toLowerCase()),
       );
     },
     totalForms(): number {
@@ -34,7 +34,7 @@ export const useFormStore = defineStore("forms", {
     selectForm(id: string) {
       if (this.selectedForms.includes(id)) {
         this.selectedForms = this.selectedForms.filter(
-          (formId) => formId !== id
+          (formId) => formId !== id,
         );
       } else {
         this.selectedForms.push(id);

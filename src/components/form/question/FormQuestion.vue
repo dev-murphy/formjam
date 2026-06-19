@@ -59,7 +59,7 @@ function choicesToItems(choices: QuestionChoice[] | undefined): ChoiceItem[] {
 }
 
 const choiceItems = ref<ChoiceItem[]>(
-  choicesToItems(props.question.expand?.question_choices)
+  choicesToItems(props.question.expand?.question_choices),
 );
 
 // Prevent feedback loop when props sync back from PocketBase
@@ -78,8 +78,10 @@ watch(
 
     syncingFromProp = true;
     choiceItems.value = choicesToItems(incoming);
-    nextTick(() => { syncingFromProp = false; });
-  }
+    nextTick(() => {
+      syncingFromProp = false;
+    });
+  },
 );
 
 function buildPayload(): Question {
@@ -111,26 +113,40 @@ watch(
     settings: questionConfig.value.settings,
     order: questionConfig.value.order,
   }),
-  () => { if (!syncingFromProp) debounce(() => emits("update:question", buildPayload())); },
-  { deep: true }
+  () => {
+    if (!syncingFromProp)
+      debounce(() => emits("update:question", buildPayload()));
+  },
+  { deep: true },
 );
 
 watch(currentQuestionOption, (typeOption) => {
   questionConfig.value.type = typeOption.value;
 });
 
-watch(choiceItems, () => {
-  if (!syncingFromProp) debounce(() => emits("update:question", buildPayload()));
-}, { deep: true });
+watch(
+  choiceItems,
+  () => {
+    if (!syncingFromProp)
+      debounce(() => emits("update:question", buildPayload()));
+  },
+  { deep: true },
+);
 
 function moveQuestion(direction: "up" | "down") {
-  if ((props.disableDown && direction === "down") || (props.disableUp && direction === "up")) return;
+  if (
+    (props.disableDown && direction === "down") ||
+    (props.disableUp && direction === "up")
+  )
+    return;
   if (direction === "up") emits("moveup:question");
   else emits("movedown:question");
 }
 
 onMounted(() => {
-  const match = questionTypeOptions.value.find((opt) => opt.value === props.question.type);
+  const match = questionTypeOptions.value.find(
+    (opt) => opt.value === props.question.type,
+  );
   if (match) currentQuestionOption.value = match;
 });
 </script>
@@ -140,17 +156,32 @@ onMounted(() => {
     class="group flex flex-col sm:flex-row bg-neutral-100 dark:bg-neutral-700 divide-y md:divide-y-0 md:divide-x divide-neutral-300 dark:divide-neutral-500 rounded-lg"
   >
     <div class="flex-grow p-3">
-      <XEditor type="question" placeholder="Question" v-model="questionConfig.label" />
+      <XEditor
+        type="question"
+        placeholder="Question"
+        v-model="questionConfig.label"
+      />
       <div class="pt-1">
-        <XEditor type="description" placeholder="Description" v-model="questionConfig.description" />
+        <XEditor
+          type="description"
+          placeholder="Description"
+          v-model="questionConfig.description"
+        />
       </div>
       <div class="sm:pt-3">
         <input
-          v-if="currentQuestionOption.value === 'short_text' || currentQuestionOption.value === 'long_text'"
+          v-if="
+            currentQuestionOption.value === 'short_text' ||
+            currentQuestionOption.value === 'long_text'
+          "
           type="text"
           class="w-full bg-white dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-600 py-2 px-4 placeholder:text-neutral-400 outline-none rounded-md"
           readonly
-          :placeholder="currentQuestionOption.value === 'short_text' ? 'Short text' : 'Long text'"
+          :placeholder="
+            currentQuestionOption.value === 'short_text'
+              ? 'Short text'
+              : 'Long text'
+          "
         />
         <Answer
           v-else-if="
@@ -164,10 +195,19 @@ onMounted(() => {
       </div>
     </div>
 
-    <div class="w-full sm:max-w-[220px] flex flex-col md:divide-y md:divide-neutral-300 dark:md:divide-neutral-500">
+    <div
+      class="w-full sm:max-w-[220px] flex flex-col md:divide-y md:divide-neutral-300 dark:md:divide-neutral-500"
+    >
       <div class="flex flex-grow flex-col gap-y-2 p-3">
-        <XDropdown v-model="currentQuestionOption" :options="questionTypeOptions" />
-        <XToggle label="Required" :id="`toggle-${question.id}`" v-model="questionConfig.required" />
+        <XDropdown
+          v-model="currentQuestionOption"
+          :options="questionTypeOptions"
+        />
+        <XToggle
+          label="Required"
+          :id="`toggle-${question.id}`"
+          v-model="questionConfig.required"
+        />
         <button class="flex items-center bg-sky-400 p-2 text-sm rounded-md">
           <IconAdjustment class="w-5 h-5 mr-2" />
           More Options

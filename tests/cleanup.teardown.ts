@@ -33,7 +33,8 @@ teardown("clean up test data", async () => {
         .collection("question_choices")
         .getFullList({ filter: `question.form.user="${uid}"` })
         .catch(() => []);
-      for (const c of choices) await pb.collection("question_choices").delete(c.id);
+      for (const c of choices)
+        await pb.collection("question_choices").delete(c.id);
 
       const questions = await pb
         .collection("questions")
@@ -53,7 +54,9 @@ teardown("clean up test data", async () => {
       console.warn("[cleanup] form cleanup failed:", (err as Error).message);
     }
   } else {
-    console.warn("[cleanup] USER_EMAIL/USER_PASSWORD not set — skipping form cleanup.");
+    console.warn(
+      "[cleanup] USER_EMAIL/USER_PASSWORD not set — skipping form cleanup.",
+    );
   }
 
   // --- Signup users: require a superuser to delete other accounts.

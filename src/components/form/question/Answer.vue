@@ -14,7 +14,9 @@ const props = defineProps<{
   questionType: string;
 }>();
 
-const emit = defineEmits<{ (e: "update:modelValue", value: ChoiceItem[]): void }>();
+const emit = defineEmits<{
+  (e: "update:modelValue", value: ChoiceItem[]): void;
+}>();
 
 const choices = ref<ChoiceItem[]>([]);
 
@@ -30,7 +32,7 @@ watch(
     if (newIds !== currentIds) {
       choices.value = newVal;
     }
-  }
+  },
 );
 
 function focusOnChoice(choiceId: string) {
@@ -71,7 +73,11 @@ function removeChoice(id: string, label?: string) {
 }
 
 onMounted(() => {
-  if (props.modelValue !== null && props.modelValue && props.modelValue.length > 0) {
+  if (
+    props.modelValue !== null &&
+    props.modelValue &&
+    props.modelValue.length > 0
+  ) {
     choices.value = props.modelValue;
     return;
   }
@@ -88,7 +94,9 @@ onMounted(() => {
       class="flex items-center gap-x-4"
     >
       <div
-        v-if="questionType === 'single_choice' || questionType === 'multiple_choice'"
+        v-if="
+          questionType === 'single_choice' || questionType === 'multiple_choice'
+        "
         class="w-6 h-6 border-2 border-gray-300"
         :class="{
           'rounded-full': questionType === 'single_choice',
@@ -102,7 +110,9 @@ onMounted(() => {
         name="choice"
         :id="`choice-${choice.id}`"
         :value="choice.label"
-        @input="updateChoice(choice.id, ($event.target as HTMLInputElement).value)"
+        @input="
+          updateChoice(choice.id, ($event.target as HTMLInputElement).value)
+        "
         @keypress.enter="addChoice(index)"
         @keydown.delete="removeChoice(choice.id, choice.label)"
         @keydown.up.prevent="moveToChoice(index, -1)"

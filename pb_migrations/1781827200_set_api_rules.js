@@ -77,5 +77,5 @@ migrate(
       c.deleteRule = null;
       app.save(c);
     }
-  }
+  },
 );

@@ -61,7 +61,8 @@ onClickOutside(dropdownRef, () => {
           v-for="option in options"
           class="flex items-center gap-x-3 hover:bg-neutral-200 dark:hover:bg-neutral-700 px-3 py-1.5 cursor-pointer select-none"
           :class="{
-            'bg-gray-200 dark:bg-neutral-700 pointer-events-none': option.name === modelValue.name,
+            'bg-gray-200 dark:bg-neutral-700 pointer-events-none':
+              option.name === modelValue.name,
           }"
           @click="$emit('update:modelValue', option)"
         >

@@ -15,7 +15,11 @@ export const middleware = (
     return { name: "Login" };
   }
 
-  if (isAuthenticated && to.name && authBlackList.includes(to.name.toString())) {
+  if (
+    isAuthenticated &&
+    to.name &&
+    authBlackList.includes(to.name.toString())
+  ) {
     return { name: "Dashboard" };
   }
 

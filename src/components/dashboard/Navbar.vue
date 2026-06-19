@@ -64,12 +64,14 @@ watch(
         path: route.path,
       });
     }
-  }
+  },
 );
 </script>
 
 <template>
-  <header class="bg-neutral-100 dark:bg-neutral-800 border-b border-neutral-400 dark:border-neutral-700 px-6 py-3">
+  <header
+    class="bg-neutral-100 dark:bg-neutral-800 border-b border-neutral-400 dark:border-neutral-700 px-6 py-3"
+  >
     <div class="container flex items-center justify-between">
       <RouterLink to="/" class="flex flex-shrink-0 items-center gap-x-2">
         <img src="@/assets/images/logo.png" alt="logo" class="w-8 h-8" />

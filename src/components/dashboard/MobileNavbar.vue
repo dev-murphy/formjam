@@ -70,13 +70,15 @@ watch(
         path: route.path,
       });
     }
-  }
+  },
 );
 </script>
 
 <template>
   <header>
-    <div class="bg-neutral-100 dark:bg-neutral-800 border-b border-neutral-200 dark:border-neutral-700 px-6 py-3">
+    <div
+      class="bg-neutral-100 dark:bg-neutral-800 border-b border-neutral-200 dark:border-neutral-700 px-6 py-3"
+    >
       <div class="container flex items-center justify-between">
         <RouterLink to="/" class="flex items-center gap-x-2">
           <img src="@/assets/images/logo.png" alt="logo" class="max-h-[30px]" />

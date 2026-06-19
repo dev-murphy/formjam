@@ -57,12 +57,12 @@ watch(
         Object.values(localAnswers.value).map((answer) =>
           pb.collection("response_answers").update(answer.recordId, {
             value: answer.value,
-          })
-        )
+          }),
+        ),
       );
     }, 1000);
   },
-  { deep: true }
+  { deep: true },
 );
 
 async function startNewResponse(formId: string) {
@@ -213,7 +213,10 @@ onMounted(async () => {
           </div>
 
           <template
-            v-else-if="question.type === 'single_choice' || question.type === 'multiple_choice'"
+            v-else-if="
+              question.type === 'single_choice' ||
+              question.type === 'multiple_choice'
+            "
           >
             <div
               v-for="choice in question.expand?.question_choices ?? []"
@@ -236,7 +239,10 @@ onMounted(async () => {
                 :input-id="choice.id"
                 v-model="localAnswers[question.id].value"
               />
-              <label :for="choice.id" class="mb-0.5 cursor-pointer dark:text-white">
+              <label
+                :for="choice.id"
+                class="mb-0.5 cursor-pointer dark:text-white"
+              >
                 {{ choice.label }}
               </label>
             </div>
@@ -258,7 +264,10 @@ onMounted(async () => {
             </select>
           </div>
 
-          <div v-else-if="question.type === 'linear_scale'" class="flex gap-x-2 flex-wrap">
+          <div
+            v-else-if="question.type === 'linear_scale'"
+            class="flex gap-x-2 flex-wrap"
+          >
             <label
               v-for="n in 10"
               :key="n"

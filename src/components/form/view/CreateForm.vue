@@ -64,7 +64,9 @@ async function gotoEditFormPage() {
         >
           Create new form
         </p>
-        <p class="text-sm text-sky-800 dark:text-sky-500 font-medium tracking-wide">
+        <p
+          class="text-sm text-sky-800 dark:text-sky-500 font-medium tracking-wide"
+        >
           Click here to create a blank form
         </p>
       </div>

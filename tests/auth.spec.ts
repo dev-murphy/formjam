@@ -91,7 +91,9 @@ test.describe("Signup Tests", () => {
     );
 
     await page.goto("/auth/signup");
-    await page.locator('[data-cy="signup_firstname_input"]').fill(user.firstName);
+    await page
+      .locator('[data-cy="signup_firstname_input"]')
+      .fill(user.firstName);
     await page.locator('[data-cy="signup_lastname_input"]').fill(user.lastName);
     await page.locator('[data-cy="signup_email_input"]').fill(user.email);
     await page.locator('[data-cy="signup_password_input"]').fill(user.password);
@@ -233,15 +235,10 @@ test.describe("Forgot Password Flow Tests", () => {
   });
 
   test("should submit reset link successfully", async ({ page }) => {
-    test.skip(
-      !process.env.USER_EMAIL,
-      "Requires USER_EMAIL env var",
-    );
+    test.skip(!process.env.USER_EMAIL, "Requires USER_EMAIL env var");
     const responsePromise = page.waitForResponse(
       (resp) =>
-        resp
-          .url()
-          .includes("/api/collections/users/request-password-reset") &&
+        resp.url().includes("/api/collections/users/request-password-reset") &&
         resp.request().method() === "POST",
     );
 
@@ -272,10 +269,7 @@ test.describe("Forgot Password Flow Tests", () => {
   });
 
   test("should confirm new password successfully", async ({ page }) => {
-    test.skip(
-      !process.env.USER_PASSWORD,
-      "Requires USER_PASSWORD env var",
-    );
+    test.skip(!process.env.USER_PASSWORD, "Requires USER_PASSWORD env var");
     await page.route(
       `${apiUrl}/api/collections/users/confirm-password-reset`,
       (route) => route.fulfill({ status: 204, body: "" }),
@@ -298,10 +292,16 @@ test.describe("Forgot Password Flow Tests", () => {
 
   test("should show new password input validation error", async ({ page }) => {
     await page.goto("/auth/confirm-password-reset/dummy-token");
-    await validatePasswordInput(page, "new_password_input", "Your new password");
+    await validatePasswordInput(
+      page,
+      "new_password_input",
+      "Your new password",
+    );
   });
 
-  test("should show confirm new password validation error", async ({ page }) => {
+  test("should show confirm new password validation error", async ({
+    page,
+  }) => {
     await page.goto("/auth/confirm-password-reset/dummy-token");
     await validateConfirmPasswordInput(
       page,

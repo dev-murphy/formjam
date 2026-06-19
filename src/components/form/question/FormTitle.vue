@@ -27,7 +27,9 @@ watch(title, (newTitle) => {
 watch(description, (newDescription) => {
   if (!props.formId) return;
   debounce(async () => {
-    await formStore.updateFormField(props.formId, { description: newDescription });
+    await formStore.updateFormField(props.formId, {
+      description: newDescription,
+    });
   }, 800);
 });
 

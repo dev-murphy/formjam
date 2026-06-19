@@ -6,31 +6,39 @@ const CHOICE_TYPES = new Set(["single_choice", "multiple_choice", "dropdown"]);
 
 const LEGACY_TYPE_MAP: Record<string, Question["type"]> = {
   "short-text": "short_text",
-  "paragraph": "long_text",
+  paragraph: "long_text",
   "single-choice": "single_choice",
-  "checkboxes": "multiple_choice",
+  checkboxes: "multiple_choice",
   "linear-scale": "linear_scale",
 };
 
-function normalizeQuestion(q: Question, fetchedChoices?: QuestionChoice[]): Question {
+function normalizeQuestion(
+  q: Question,
+  fetchedChoices?: QuestionChoice[],
+): Question {
   const type = (LEGACY_TYPE_MAP[q.type] ?? q.type) as Question["type"];
 
   // Prefer choices fetched directly from the question_choices collection.
   // Fall back to the legacy inline "answers" JSON field for un-migrated data.
-  const oldAnswers = (q as any).answers as { id: string; text: string }[] | null | undefined;
+  const oldAnswers = (q as any).answers as
+    | { id: string; text: string }[]
+    | null
+    | undefined;
 
-  const choices: QuestionChoice[] | undefined =
-    fetchedChoices?.length ? fetchedChoices :
-    oldAnswers?.length ? oldAnswers.map((a, i) => ({
-      id: a.id,
-      label: a.text,
-      order: i + 1,
-      question: q.id,
-      created: "",
-      updated: "",
-      collectionId: "",
-      collectionName: "",
-    })) : undefined;
+  const choices: QuestionChoice[] | undefined = fetchedChoices?.length
+    ? fetchedChoices
+    : oldAnswers?.length
+      ? oldAnswers.map((a, i) => ({
+          id: a.id,
+          label: a.text,
+          order: i + 1,
+          question: q.id,
+          created: "",
+          updated: "",
+          collectionId: "",
+          collectionName: "",
+        }))
+      : undefined;
 
   return {
     ...q,
@@ -69,7 +77,7 @@ export const useQuestionStore = defineStore("questions", {
       // everywhere. Group the results by question id.
       const choicesByQuestion = new Map<string, QuestionChoice[]>();
       const choiceQuestions = items.filter((q) =>
-        CHOICE_TYPES.has((LEGACY_TYPE_MAP[q.type] ?? q.type) as string)
+        CHOICE_TYPES.has((LEGACY_TYPE_MAP[q.type] ?? q.type) as string),
       );
 
       if (choiceQuestions.length) {
@@ -93,7 +101,7 @@ export const useQuestionStore = defineStore("questions", {
       }
 
       this.questions = items.map((q) =>
-        normalizeQuestion(q, choicesByQuestion.get(q.id))
+        normalizeQuestion(q, choicesByQuestion.get(q.id)),
       );
     },
 
@@ -112,7 +120,8 @@ export const useQuestionStore = defineStore("questions", {
     },
 
     async duplicateQuestion(question: Question) {
-      const { label, description, type, required, settings, form, order } = question;
+      const { label, description, type, required, settings, form, order } =
+        question;
 
       const newQuestion = await pb.collection("questions").create<Question>({
         label,
@@ -179,7 +188,7 @@ export const useQuestionStore = defineStore("questions", {
         try {
           await this.syncChoices(
             question.id,
-            question.expand?.question_choices ?? []
+            question.expand?.question_choices ?? [],
           );
         } catch {
           // question_choices collection not set up yet — choices won't persist
@@ -207,7 +216,11 @@ export const useQuestionStore = defineStore("questions", {
 
       for (let i = 0; i < newChoices.length; i++) {
         const choice = newChoices[i];
-        const payload = { question: questionId, label: choice.label, order: i + 1 };
+        const payload = {
+          question: questionId,
+          label: choice.label,
+          order: i + 1,
+        };
 
         if (!existingIds.has(choice.id)) {
           await pb.collection("question_choices").create(payload);

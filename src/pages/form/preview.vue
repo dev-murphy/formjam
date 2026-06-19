@@ -83,7 +83,10 @@ onMounted(async () => {
         >
           <IconArrowDown class="w-8 h-8 rotate-90" />
         </RouterLink>
-        <h1 v-html="formTitle" class="prose prose-2xl dark:text-white text-center"></h1>
+        <h1
+          v-html="formTitle"
+          class="prose prose-2xl dark:text-white text-center"
+        ></h1>
       </div>
 
       <div
@@ -106,7 +109,10 @@ onMounted(async () => {
         ></p>
 
         <div class="flex-grow">
-          <div v-if="question.type === 'short_text'" class="flex items-center gap-x-3">
+          <div
+            v-if="question.type === 'short_text'"
+            class="flex items-center gap-x-3"
+          >
             <p class="font-rokkitt text-[26px] dark:text-sky-400">T</p>
             <input
               type="text"
@@ -117,7 +123,10 @@ onMounted(async () => {
             />
           </div>
 
-          <div v-else-if="question.type === 'long_text'" class="flex items-start gap-x-3">
+          <div
+            v-else-if="question.type === 'long_text'"
+            class="flex items-start gap-x-3"
+          >
             <IconLongText class="w-6 h-6 mt-2.5 dark:text-sky-400" />
             <textarea
               :id="`textarea-${question.id}`"
@@ -129,7 +138,10 @@ onMounted(async () => {
           </div>
 
           <template
-            v-else-if="question.type === 'single_choice' || question.type === 'multiple_choice'"
+            v-else-if="
+              question.type === 'single_choice' ||
+              question.type === 'multiple_choice'
+            "
           >
             <div
               v-for="choice in question.expand?.question_choices ?? []"
@@ -152,7 +164,10 @@ onMounted(async () => {
                 :input-id="choice.id"
                 v-model="localAnswers[question.id]"
               />
-              <label :for="choice.id" class="mb-0.5 cursor-pointer dark:text-white">
+              <label
+                :for="choice.id"
+                class="mb-0.5 cursor-pointer dark:text-white"
+              >
                 {{ choice.label }}
               </label>
             </div>
@@ -174,7 +189,10 @@ onMounted(async () => {
             </select>
           </div>
 
-          <div v-else-if="question.type === 'linear_scale'" class="flex gap-x-2 flex-wrap">
+          <div
+            v-else-if="question.type === 'linear_scale'"
+            class="flex gap-x-2 flex-wrap"
+          >
             <label
               v-for="n in 10"
               :key="n"
@@ -194,9 +212,7 @@ onMounted(async () => {
       </div>
 
       <div class="flex justify-between">
-        <RouterLink
-          :to="`/form/${route.params.formId}/success`"
-        >
+        <RouterLink :to="`/form/${route.params.formId}/success`">
           <button class="custom-btn py-2 px-5 font-medium rounded-lg">
             Submit Form
           </button>

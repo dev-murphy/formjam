@@ -3,6 +3,9 @@
   "private": true,
   "version": "1.9.0",
   "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc && vite build",

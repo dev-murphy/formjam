@@ -21,9 +21,9 @@ dist-ssr
 # PocketBase
 **/pocketbase
 
-# Cypress
-cypress/screenshots
-cypress/videos
+# Playwright
+test-results/
+playwright-report/
 
 # Editor directories and files
 .vscode/*

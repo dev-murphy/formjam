@@ -5,7 +5,7 @@
     "module": "ESNext",
     "lib": ["ES2021", "DOM", "DOM.Iterable"],
     "skipLibCheck": true,
-    "types": ["cypress", "node"],
+    "types": ["node"],
 
     /* Bundler mode */
     "moduleResolution": "bundler",
@@ -31,7 +31,7 @@
     "src/**/*.d.ts",
     "src/**/*.tsx",
     "src/**/*.vue",
-    "src/**/*.cy.{js,ts,jsx,tsx}"
+    "playwright.config.ts"
   ],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

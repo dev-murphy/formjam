@@ -2,18 +2,17 @@
 import { computed, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useTitle } from "@vueuse/core";
-import type { SubmittedForm } from "@/types/form";
+import type { LocalAnswer, AnswerValue } from "@/types/form";
 import pb from "@/db/pocketBase";
 
 import debounce from "@/utils/debouncer";
-import { getDefaultAnswer, setupParagraphInputs } from "@/utils/form";
+import { setupParagraphInputs } from "@/utils/form";
 
 import { useFormStore } from "@/store/forms";
 import { useQuestionStore } from "@/store/questions";
 import { useSettingsStore } from "@/store/settings";
 import IconLongText from "@/components/icons/question/LongText.vue";
 
-// prime vue components
 import Checkbox from "primevue/checkbox";
 import RadioButton from "primevue/radiobutton";
 
@@ -25,12 +24,9 @@ const questionStore = useQuestionStore();
 const settingsStore = useSettingsStore();
 
 const formTitle = ref("");
-const formResponse = ref<SubmittedForm>({
-  form: "",
-  user: "",
-  is_submitted: false,
-  form_data: [],
-});
+const responseId = ref("");
+// keyed by question.id → { recordId: response_answers.id, value }
+const localAnswers = ref<Record<string, LocalAnswer>>({});
 
 const title = computed(() => {
   const elem = document.createElement("h1");
@@ -41,59 +37,89 @@ const title = computed(() => {
 });
 useTitle(title);
 
+function getDefaultValue(questionType: string): AnswerValue {
+  return questionType === "multiple_choice" ? [] : "";
+}
+
 function clearForm() {
-  formResponse.value.form_data = formResponse.value.form_data.map((answer) => {
-    return {
-      id: answer.id,
-      type: answer.type,
-      answer: getDefaultAnswer(answer.type),
-    };
-  });
+  for (const question of questionStore.questions) {
+    if (localAnswers.value[question.id]) {
+      localAnswers.value[question.id].value = getDefaultValue(question.type);
+    }
+  }
 }
 
 watch(
-  () => formResponse.value.form_data,
-  async (formValue) => {
+  localAnswers,
+  () => {
     debounce(async () => {
-      await pb
-        .collection("submitted_forms")
-        .update(settingsStore.formData.form_id, {
-          form_data: formValue,
-        });
+      await Promise.all(
+        Object.values(localAnswers.value).map((answer) =>
+          pb.collection("response_answers").update(answer.recordId, {
+            value: answer.value,
+          })
+        )
+      );
     }, 1000);
   },
   { deep: true }
 );
 
-async function newForm(formId: string) {
-  formResponse.value.user = pb.authStore.model?.id ?? "";
-  formResponse.value.form = formId;
-  const record = await pb
-    .collection("submitted_forms")
-    .create(formResponse.value);
+async function startNewResponse(formId: string) {
+  const record = await pb.collection("responses").create({
+    form: formId,
+    respondent: pb.authStore.model?.id || null,
+    is_complete: false,
+  });
 
+  responseId.value = record.id;
   settingsStore.formData.form_id = record.id;
   settingsStore.formData.is_submitted = false;
 
-  let paragraphInputs: string[] = [];
+  const paragraphInputs: string[] = [];
+  localAnswers.value = {};
 
-  formResponse.value.form_data = questionStore.questions.map(({ type, id }) => {
-    if (type === "paragraph") paragraphInputs.push(id);
-    return { id, type, answer: getDefaultAnswer(type) };
-  });
+  for (const question of questionStore.questions) {
+    if (question.type === "long_text") paragraphInputs.push(question.id);
+
+    const answerRecord = await pb.collection("response_answers").create({
+      response: record.id,
+      question: question.id,
+      value: getDefaultValue(question.type),
+    });
+
+    localAnswers.value[question.id] = {
+      recordId: answerRecord.id,
+      value: getDefaultValue(question.type),
+    };
+  }
 
   setupParagraphInputs(paragraphInputs);
 }
 
+async function loadExistingResponse(existingResponseId: string) {
+  const answerRecords = await pb
+    .collection("response_answers")
+    .getFullList({ filter: `response="${existingResponseId}"` });
+
+  responseId.value = existingResponseId;
+  localAnswers.value = {};
+
+  for (const record of answerRecords) {
+    localAnswers.value[record.question] = {
+      recordId: record.id,
+      value: record.value as AnswerValue,
+    };
+  }
+}
+
 async function submit() {
-  formResponse.value.is_submitted = true;
   settingsStore.formData.is_submitted = true;
 
-  await pb
-    .collection("submitted_forms")
-    .update(settingsStore.formData.form_id, {
-      is_submitted: true,
-    });
+  await pb.collection("responses").update(responseId.value, {
+    is_complete: true,
+    submitted_at: new Date().toISOString(),
+  });
 
   router.push({
     path: `/form/${route.params.formId}/success`,
@@ -110,22 +136,19 @@ onMounted(async () => {
 
   formTitle.value =
     formStore.forms.find((form) => form.id === formId)?.title || "";
+
   await questionStore.fetchQuestions(formId);
 
   if (settingsStore.formData.form_id && !settingsStore.formData.is_submitted) {
     try {
-      const response = await pb
-        .collection("submitted_forms")
-        .getOne(settingsStore.formData.form_id);
-
-      formResponse.value.form_data = response.form_data;
+      await loadExistingResponse(settingsStore.formData.form_id);
       return;
     } catch (e) {
       console.error(e);
     }
   }
 
-  await newForm(formId);
+  await startNewResponse(formId);
 });
 </script>
 
@@ -134,91 +157,122 @@ onMounted(async () => {
     <form class="w-full max-w-[1000px] flex flex-col gap-3 mx-auto">
       <h1
         v-html="formTitle"
-        class="prose prose-2xl text-center"
+        class="prose prose-2xl text-center dark:text-white"
       ></h1>
 
       <div
-        v-for="(question, index) in questionStore.questions"
-        class="w-full flex flex-col border border-gray-300 p-4 mx-auto shadow-md rounded-lg"
+        v-for="question in questionStore.questions"
+        :key="question.id"
+        class="w-full dark:bg-neutral-700 flex flex-col border border-gray-300 dark:border-transparent p-4 mx-auto shadow-md rounded-lg"
       >
         <h2
           v-html="
-            question.text +
+            question.label +
             `${
               question.required
                 ? '<span class=\'text-red-500 select-none\'> *</span>'
                 : ''
             }`
           "
-          class="flex gap-1 text-xl"
-          :class="{
-            'pb-3': !question.description,
-          }"
+          class="flex gap-1 text-xl dark:text-white"
+          :class="{ 'pb-3': !question.description }"
         ></h2>
         <p
           v-if="question.description"
           v-html="question.description"
-          class="question-description prose prose-p:my-0.3 prose-li:my-0.5 text-gray-600 pb-3 text-sm"
+          class="question-description prose prose-p:my-0.3 prose-li:my-0.5 text-gray-600 dark:text-neutral-500 pb-3 text-sm"
         ></p>
 
-        <div v-if="formResponse.form_data[index]" class="flex-grow">
+        <div v-if="localAnswers[question.id]" class="flex-grow">
           <div
-            v-if="question.type === 'short-text'"
+            v-if="question.type === 'short_text'"
             class="flex items-center gap-x-3"
           >
-            <p class="font-rokkitt text-[26px]">T</p>
+            <p class="font-rokkitt text-[26px] dark:text-sky-400">T</p>
             <input
               type="text"
-              v-model="formResponse.form_data[index].answer"
+              v-model="localAnswers[question.id].value"
               placeholder="Enter your answer here"
-              class="w-full py-2 border-b border-gray-200 hover:border-gray-400 focus:border-sky-500 outline-none"
+              class="w-full bg-transparent py-2 border-b border-gray-200 hover:border-gray-400 focus:border-sky-500 dark:placeholder:text-neutral-400 dark:text-white outline-none"
               @keypress.enter.prevent
             />
           </div>
 
           <div
-            v-if="question.type === 'paragraph'"
+            v-if="question.type === 'long_text'"
             class="flex items-start gap-x-3"
           >
             <IconLongText class="w-6 h-6 mt-2.5" />
             <textarea
               :id="`textarea-${question.id}`"
               placeholder="Enter your answer here"
-              v-model="formResponse.form_data[index].answer"
+              v-model="localAnswers[question.id].value"
               data-lpignore="true"
-              class="w-full h-8 py-2 border-b border-gray-200 hover:border-gray-400 focus:border-sky-500 resize-none outline-none"
+              class="w-full h-8 bg-transparent py-2 border-b border-gray-200 hover:border-gray-400 focus:border-sky-500 dark:placeholder:text-neutral-400 dark:text-white resize-none outline-none"
             />
           </div>
 
-          <div
-            v-else-if="
-              question.type === 'single-choice' ||
-              question.type === 'checkboxes'
-            "
-            v-for="answer in question.answers"
-            :key="answer.id"
-            class="flex items-center pb-1.5 gap-2"
+          <template
+            v-else-if="question.type === 'single_choice' || question.type === 'multiple_choice'"
           >
-            <Checkbox
-              v-if="question.type === 'checkboxes'"
-              :aria-labelledby="answer.text"
-              :name="`${question.id}`"
-              :value="answer.id"
-              :input-id="answer.id"
-              v-model="formResponse.form_data[index].answer"
-            />
+            <div
+              v-for="choice in question.expand?.question_choices ?? []"
+              :key="choice.id"
+              class="flex items-center pb-1.5 gap-2"
+            >
+              <Checkbox
+                v-if="question.type === 'multiple_choice'"
+                :aria-labelledby="choice.label"
+                :name="`${question.id}`"
+                :value="choice.id"
+                :input-id="choice.id"
+                v-model="localAnswers[question.id].value"
+              />
+              <RadioButton
+                v-if="question.type === 'single_choice'"
+                :aria-labelledby="choice.label"
+                :name="`${question.id}`"
+                :value="choice.id"
+                :input-id="choice.id"
+                v-model="localAnswers[question.id].value"
+              />
+              <label :for="choice.id" class="mb-0.5 cursor-pointer dark:text-white">
+                {{ choice.label }}
+              </label>
+            </div>
+          </template>
 
-            <RadioButton
-              v-if="question.type === 'single-choice'"
-              :aria-labelledby="answer.text"
-              :name="`${question.id}`"
-              :value="answer.id"
-              :input-id="answer.id"
-              v-model="formResponse.form_data[index].answer"
-            />
-            <label :for="answer.id" class="mb-0.5 cursor-pointer">{{
-              answer.text
-            }}</label>
+          <div v-else-if="question.type === 'dropdown'">
+            <select
+              v-model="localAnswers[question.id].value"
+              class="w-full bg-white dark:bg-neutral-800 border border-gray-300 dark:border-neutral-600 py-2 px-3 rounded-md outline-none focus:border-sky-500 dark:text-white"
+            >
+              <option value="" disabled>Select an option</option>
+              <option
+                v-for="choice in question.expand?.question_choices ?? []"
+                :key="choice.id"
+                :value="choice.id"
+              >
+                {{ choice.label }}
+              </option>
+            </select>
+          </div>
+
+          <div v-else-if="question.type === 'linear_scale'" class="flex gap-x-2 flex-wrap">
+            <label
+              v-for="n in 10"
+              :key="n"
+              class="flex flex-col items-center gap-y-1 cursor-pointer"
+            >
+              <input
+                type="radio"
+                :name="`${question.id}`"
+                :value="String(n)"
+                v-model="localAnswers[question.id].value"
+                class="cursor-pointer accent-sky-500"
+              />
+              <span class="text-sm dark:text-white">{{ n }}</span>
+            </label>
           </div>
         </div>
       </div>

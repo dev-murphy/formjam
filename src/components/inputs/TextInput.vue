@@ -41,7 +41,7 @@ function toggleShowPassword() {
         v-model="value"
         :type="!showPassword && type === 'password' ? type : 'text'"
         :placeholder="placeholder"
-        class="w-full px-4 py-3 text-black rounded-lg outline-none"
+        class="w-full px-4 py-3 text-black dark:bg-neutral-800 dark:border dark:border-neutral-600 dark:text-white dark:placeholder:text-neutral-400 rounded-lg outline-none"
         :class="{
           'px-4 py-3': type !== 'password',
           'pl-4 pr-14 py-3': type === 'password',
@@ -57,7 +57,7 @@ function toggleShowPassword() {
         :type="!showPassword && type === 'password' ? type : 'text'"
         :placeholder="placeholder"
         :value="modelValue"
-        class="w-full px-4 py-3 text-black rounded-lg outline-none"
+        class="w-full px-4 py-3 text-black dark:bg-neutral-800 dark:border dark:border-neutral-600 dark:text-white dark:placeholder:text-neutral-400 rounded-lg outline-none"
         :class="{
           'px-4 py-3': type !== 'password',
           'pl-4 pr-14 py-3': type === 'password',
@@ -77,7 +77,7 @@ function toggleShowPassword() {
 
       <button
         v-if="type === 'password'"
-        class="absolute top-1/2 right-2 -translate-y-1/2 bg-white hover:bg-gray-200 px-1 py-0.5 text-sm text-neutral-600 rounded-md"
+        class="absolute top-1/2 right-2 -translate-y-1/2 bg-white dark:bg-neutral-700 hover:bg-gray-200 dark:hover:bg-neutral-600 px-1 py-0.5 text-sm text-neutral-600 dark:text-neutral-300 rounded-md"
         @click="toggleShowPassword"
       >
         <IconEyeClose

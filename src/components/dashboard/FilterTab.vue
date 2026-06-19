@@ -26,14 +26,14 @@ const currentSortOption = ref<DropdownOption>(sortOptions.value[0]);
       'flex-row items-end': !smallerOrEqual,
     }"
   >
-    <p class="text-2xl">Recent Forms</p>
+    <p class="text-2xl dark:text-white">Recent Forms</p>
 
     <div
       class="flex gap-x-3"
       :class="{ 'w-full': smallerOrEqual, 'ml-auto': !smallerOrEqual }"
     >
       <div class="w-1/2">
-        <p class="pb-1 text-xs uppercase tracking-widest select-none">Layout</p>
+        <p class="pb-1 text-xs uppercase tracking-widest select-none dark:text-neutral-400">Layout</p>
 
         <button
           class="custom-btn flex items-center justify-center px-3 py-1.5 text-sky-900 select-none cursor-pointer rounded-md"
@@ -56,7 +56,7 @@ const currentSortOption = ref<DropdownOption>(sortOptions.value[0]);
         }"
       >
         <p
-          class="pb-1 text-xs uppercase tracking-widest select-none"
+          class="pb-1 text-xs uppercase tracking-widest select-none dark:text-neutral-400"
           :class="{
             'w-1/2': smallerOrEqual,
             'w-[139px]': !smallerOrEqual,

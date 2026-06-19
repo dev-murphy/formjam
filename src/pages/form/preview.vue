@@ -2,27 +2,25 @@
 import { onMounted, ref, computed } from "vue";
 import { useRoute } from "vue-router";
 import { useTitle } from "@vueuse/core";
-import type { Answer } from "@/types/form";
-import { getDefaultAnswer, setupParagraphInputs } from "@/utils/form";
+import { setupParagraphInputs } from "@/utils/form";
+import type { AnswerValue } from "@/types/form";
 
 import { useFormStore } from "@/store/forms";
 import { useQuestionStore } from "@/store/questions";
 import IconLongText from "@/components/icons/question/LongText.vue";
-
-// prime vue components
-import Checkbox from "primevue/checkbox";
-import RadioButton from "primevue/radiobutton";
-
 import IconArrowDown from "@/components/icons/controls/ArrowDown.vue";
 import IconAlert from "@/components/icons/misc/Alert.vue";
 
-const route = useRoute();
+import Checkbox from "primevue/checkbox";
+import RadioButton from "primevue/radiobutton";
 
+const route = useRoute();
 const formStore = useFormStore();
 const questionStore = useQuestionStore();
 
 const formTitle = ref("");
-const formData = ref<Answer[]>([]);
+// keyed by question.id, no PocketBase persistence (preview only)
+const localAnswers = ref<Record<string, AnswerValue>>({});
 
 const title = computed(() => {
   const elem = document.createElement("h1");
@@ -33,14 +31,14 @@ const title = computed(() => {
 });
 useTitle(title);
 
+function getDefaultValue(type: string): AnswerValue {
+  return type === "multiple_choice" ? [] : "";
+}
+
 function clearForm() {
-  formData.value = formData.value.map((answer) => {
-    return {
-      id: answer.id,
-      type: answer.type,
-      answer: getDefaultAnswer(answer.type),
-    };
-  });
+  for (const question of questionStore.questions) {
+    localAnswers.value[question.id] = getDefaultValue(question.type);
+  }
 }
 
 onMounted(async () => {
@@ -52,14 +50,15 @@ onMounted(async () => {
 
   formTitle.value =
     formStore.forms.find((form) => form.id === formId)?.title || "";
+
   await questionStore.fetchQuestions(formId);
 
-  let paragraphInputs: string[] = [];
+  const paragraphInputs: string[] = [];
 
-  formData.value = questionStore.questions.map(({ type, id }) => {
-    if (type === "paragraph") paragraphInputs.push(id);
-    return { id, type, answer: getDefaultAnswer(type) };
-  });
+  for (const question of questionStore.questions) {
+    if (question.type === "long_text") paragraphInputs.push(question.id);
+    localAnswers.value[question.id] = getDefaultValue(question.type);
+  }
 
   setupParagraphInputs(paragraphInputs);
 });
@@ -73,8 +72,7 @@ onMounted(async () => {
       >
         <IconAlert class="w-6 h-6" />
         <p class="font-medium">
-          <b>Please Note:</b> The submissions on the preview page will not be
-          saved to the database.
+          <b>Please Note:</b> Submissions on the preview page are not saved.
         </p>
       </div>
 
@@ -85,29 +83,21 @@ onMounted(async () => {
         >
           <IconArrowDown class="w-8 h-8 rotate-90" />
         </RouterLink>
-        <h1
-          v-html="formTitle"
-          class="prose prose-2xl dark:text-white text-center"
-        ></h1>
+        <h1 v-html="formTitle" class="prose prose-2xl dark:text-white text-center"></h1>
       </div>
 
       <div
-        v-for="(question, index) in questionStore.questions"
+        v-for="question in questionStore.questions"
+        :key="question.id"
         class="w-full dark:bg-neutral-700 flex flex-col border border-gray-300 dark:border-transparent p-4 mx-auto shadow-md rounded-lg"
       >
         <h2
           v-html="
-            question.text +
-            `${
-              question.required
-                ? '<span class=\'text-red-500 select-none\'> *</span>'
-                : ''
-            }`
+            question.label +
+            `${question.required ? '<span class=\'text-red-500 select-none\'> *</span>' : ''}`
           "
           class="flex gap-1 text-xl prose prose-p:my-0 dark:text-white"
-          :class="{
-            'pb-3': !question.description,
-          }"
+          :class="{ 'pb-3': !question.description }"
         ></h2>
         <p
           v-if="question.description"
@@ -115,64 +105,90 @@ onMounted(async () => {
           class="question-description prose prose-p:my-0.5 prose-li:my-0.5 text-neutral-600 dark:text-neutral-500 pb-3 text-sm"
         ></p>
 
-        <div v-if="formData[index]" class="flex-grow">
-          <div
-            v-if="question.type === 'short-text'"
-            class="flex items-center gap-x-3"
-          >
+        <div class="flex-grow">
+          <div v-if="question.type === 'short_text'" class="flex items-center gap-x-3">
             <p class="font-rokkitt text-[26px] dark:text-sky-400">T</p>
             <input
               type="text"
-              v-model="formData[index].answer"
+              v-model="localAnswers[question.id]"
               placeholder="Enter your answer here"
               class="w-full bg-transparent py-2 border-b border-gray-200 hover:border-gray-400 focus:border-sky-500 dark:placeholder:text-neutral-400 dark:text-white outline-none"
               @keypress.enter.prevent
             />
           </div>
 
-          <div
-            v-if="question.type === 'paragraph'"
-            class="flex items-start gap-x-3"
-          >
+          <div v-else-if="question.type === 'long_text'" class="flex items-start gap-x-3">
             <IconLongText class="w-6 h-6 mt-2.5 dark:text-sky-400" />
             <textarea
               :id="`textarea-${question.id}`"
               placeholder="Enter your answer here"
-              v-model="formData[index].answer"
+              v-model="localAnswers[question.id]"
               data-lpignore="true"
               class="w-full h-8 bg-transparent py-2 border-b border-gray-200 hover:border-gray-400 focus:border-sky-500 dark:placeholder:text-neutral-400 dark:text-white resize-none outline-none"
             />
           </div>
 
-          <div
-            v-else-if="
-              question.type === 'single-choice' ||
-              question.type === 'checkboxes'
-            "
-            v-for="answer in question.answers"
-            :key="answer.id"
-            class="flex items-center pb-1.5 gap-2"
+          <template
+            v-else-if="question.type === 'single_choice' || question.type === 'multiple_choice'"
           >
-            <Checkbox
-              v-if="question.type === 'checkboxes'"
-              :aria-labelledby="answer.text"
-              :name="`${question.id}`"
-              :value="answer.id"
-              :input-id="answer.id"
-              v-model="formData[index].answer"
-            />
+            <div
+              v-for="choice in question.expand?.question_choices ?? []"
+              :key="choice.id"
+              class="flex items-center pb-1.5 gap-2"
+            >
+              <Checkbox
+                v-if="question.type === 'multiple_choice'"
+                :aria-labelledby="choice.label"
+                :name="`${question.id}`"
+                :value="choice.id"
+                :input-id="choice.id"
+                v-model="localAnswers[question.id]"
+              />
+              <RadioButton
+                v-if="question.type === 'single_choice'"
+                :aria-labelledby="choice.label"
+                :name="`${question.id}`"
+                :value="choice.id"
+                :input-id="choice.id"
+                v-model="localAnswers[question.id]"
+              />
+              <label :for="choice.id" class="mb-0.5 cursor-pointer dark:text-white">
+                {{ choice.label }}
+              </label>
+            </div>
+          </template>
 
-            <RadioButton
-              v-if="question.type === 'single-choice'"
-              :aria-labelledby="answer.text"
-              :name="`${question.id}`"
-              :value="answer.id"
-              :input-id="answer.id"
-              v-model="formData[index].answer"
-            />
-            <label :for="answer.id" class="mb-0.5 cursor-pointer">{{
-              answer.text
-            }}</label>
+          <div v-else-if="question.type === 'dropdown'">
+            <select
+              v-model="localAnswers[question.id]"
+              class="w-full bg-white dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-600 py-2 px-3 rounded-md outline-none focus:border-sky-500 dark:text-white"
+            >
+              <option value="" disabled>Select an option</option>
+              <option
+                v-for="choice in question.expand?.question_choices ?? []"
+                :key="choice.id"
+                :value="choice.id"
+              >
+                {{ choice.label }}
+              </option>
+            </select>
+          </div>
+
+          <div v-else-if="question.type === 'linear_scale'" class="flex gap-x-2 flex-wrap">
+            <label
+              v-for="n in 10"
+              :key="n"
+              class="flex flex-col items-center gap-y-1 cursor-pointer"
+            >
+              <input
+                type="radio"
+                :name="`${question.id}`"
+                :value="String(n)"
+                v-model="localAnswers[question.id]"
+                class="cursor-pointer accent-sky-500"
+              />
+              <span class="text-sm dark:text-white">{{ n }}</span>
+            </label>
           </div>
         </div>
       </div>
@@ -180,7 +196,6 @@ onMounted(async () => {
       <div class="flex justify-between">
         <RouterLink
           :to="`/form/${route.params.formId}/success`"
-          :query="route.query"
         >
           <button class="custom-btn py-2 px-5 font-medium rounded-lg">
             Submit Form

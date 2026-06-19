@@ -1,121 +1,125 @@
 <script lang="ts" setup>
-import { onMounted, ref } from "vue";
+import { onMounted, ref, watch } from "vue";
 import { nanoid } from "nanoid";
 
 import IconClose from "@/components/icons/controls/Close.vue";
 
-export interface Answer {
-  text: string;
+export interface ChoiceItem {
   id: string;
+  label: string;
 }
 
 const props = defineProps<{
-  modelValue: Answer[] | null;
+  modelValue: ChoiceItem[] | null;
   questionType: string;
 }>();
 
-const emit = defineEmits<{ (e: "update:modelValue", value: Answer[]): void }>();
+const emit = defineEmits<{ (e: "update:modelValue", value: ChoiceItem[]): void }>();
 
-const answers = ref<Answer[]>([]);
+const choices = ref<ChoiceItem[]>([]);
 
-function focusOnAnswer(answerId: string) {
+// Keep choices in sync with the parent when PocketBase returns real IDs.
+// Without this, choices.value becomes a stale reference after the first save
+// and the next addChoice/removeChoice would push stale temp IDs back up.
+watch(
+  () => props.modelValue,
+  (newVal) => {
+    if (!newVal || newVal.length === 0) return;
+    const newIds = newVal.map((c) => c.id).join(",");
+    const currentIds = choices.value.map((c) => c.id).join(",");
+    if (newIds !== currentIds) {
+      choices.value = newVal;
+    }
+  }
+);
+
+function focusOnChoice(choiceId: string) {
   setTimeout(() => {
-    document.getElementById(`ans-${answerId}`)?.focus();
+    document.getElementById(`choice-${choiceId}`)?.focus();
   }, 10);
 }
 
-function addAnswer(index: number) {
-  const newAnswerId = nanoid();
-
-  answers.value.splice(index + 1, 0, {
-    id: newAnswerId,
-    text: "option",
-  });
-
-  focusOnAnswer(newAnswerId);
-  emit("update:modelValue", answers.value);
+function addChoice(index: number) {
+  const newId = "new_" + nanoid();
+  choices.value.splice(index + 1, 0, { id: newId, label: "option" });
+  focusOnChoice(newId);
+  emit("update:modelValue", choices.value);
 }
 
-function updateAnswer(id: string, text: string) {
-  const index = answers.value.findIndex((answer) => answer.id === id);
-  answers.value[index].text = text;
+function updateChoice(id: string, label: string) {
+  const index = choices.value.findIndex((c) => c.id === id);
+  if (index === -1) return;
+  choices.value[index].label = label;
+  emit("update:modelValue", choices.value);
 }
 
-function moveToAnswer(index: number, increment: number) {
+function moveToChoice(index: number, increment: number) {
   const position = index + increment;
-  if (position < 0 || position >= answers.value.length) return;
-  focusOnAnswer(answers.value[position].id);
-  emit("update:modelValue", answers.value);
+  if (position < 0 || position >= choices.value.length) return;
+  focusOnChoice(choices.value[position].id);
+  emit("update:modelValue", choices.value);
 }
 
-function removeAnswer(id: string, text?: string) {
-  if (text !== undefined && text !== "") return;
-  let index = answers.value.findIndex((answer) => answer.id === id);
-  answers.value = answers.value.filter((answer) => answer.id !== id);
-
-  if (answers.value.length < 2) return;
-  index = index === answers.value.length ? index - 1 : index;
-  focusOnAnswer(answers.value[index].id);
-
-  emit("update:modelValue", answers.value);
+function removeChoice(id: string, label?: string) {
+  if (label !== undefined && label !== "") return;
+  let index = choices.value.findIndex((c) => c.id === id);
+  choices.value = choices.value.filter((c) => c.id !== id);
+  if (choices.value.length < 2) return;
+  index = index === choices.value.length ? index - 1 : index;
+  focusOnChoice(choices.value[index].id);
+  emit("update:modelValue", choices.value);
 }
 
 onMounted(() => {
-  if (props.modelValue !== null) {
-    answers.value = props.modelValue;
+  if (props.modelValue !== null && props.modelValue && props.modelValue.length > 0) {
+    choices.value = props.modelValue;
     return;
   }
-
-  answers.value.push({
-    id: nanoid(),
-    text: "option",
-  });
-  emit("update:modelValue", answers.value);
+  choices.value.push({ id: "new_" + nanoid(), label: "option" });
+  emit("update:modelValue", choices.value);
 });
 </script>
 
 <template>
   <div class="flex flex-col gap-y-1">
     <div
-      v-for="(answer, index) in answers"
-      :key="answer.id"
+      v-for="(choice, index) in choices"
+      :key="choice.id"
       class="flex items-center gap-x-4"
     >
       <div
-        v-if="questionType === 'single-choice' || questionType === 'checkboxes'"
+        v-if="questionType === 'single_choice' || questionType === 'multiple_choice'"
         class="w-6 h-6 border-2 border-gray-300"
         :class="{
-          'rounded-full': questionType === 'single-choice',
-          'rounded-md': questionType === 'checkboxes',
+          'rounded-full': questionType === 'single_choice',
+          'rounded-md': questionType === 'multiple_choice',
         }"
       ></div>
       <p v-else>{{ index + 1 }}.</p>
 
       <input
         type="text"
-        name="answer"
-        :id="`ans-${answer.id}`"
-        :value="answer.text"
-        @input="
-          updateAnswer(answer.id, ($event.target as HTMLInputElement).value)
-        "
-        @keypress.enter="addAnswer(index)"
-        @keydown.delete="removeAnswer(answer.id, answer.text)"
-        @keydown.up.prevent="moveToAnswer(index, -1)"
-        @keydown.down.prevent="moveToAnswer(index, 1)"
+        name="choice"
+        :id="`choice-${choice.id}`"
+        :value="choice.label"
+        @input="updateChoice(choice.id, ($event.target as HTMLInputElement).value)"
+        @keypress.enter="addChoice(index)"
+        @keydown.delete="removeChoice(choice.id, choice.label)"
+        @keydown.up.prevent="moveToChoice(index, -1)"
+        @keydown.down.prevent="moveToChoice(index, 1)"
         class="flex-grow bg-transparent border-b border-transparent hover:border-neutral-300 focus:border-sky-500 outline-none py-2 text-neutral-700 dark:text-white"
       />
 
       <button
         class="w-8 h-8 flex items-center justify-center bg-neutral-200 dark:bg-neutral-800 text-black dark:text-red-500 rounded-md"
-        @click="removeAnswer(answer.id)"
+        @click="removeChoice(choice.id)"
       >
         <IconClose class="w-6 h-6" />
       </button>
     </div>
     <button
       class="w-fit hover:bg-neutral-200 dark:hover:bg-neutral-800 mt-0.5 mx-auto py-1 px-4 text-neutral-700 dark:text-neutral-300 rounded-md"
-      @click="addAnswer(answers.length)"
+      @click="addChoice(choices.length)"
     >
       Add Option
     </button>

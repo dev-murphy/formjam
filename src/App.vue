@@ -18,14 +18,14 @@ onMounted(() => {
   <ConfirmDialog group="headless">
     <template #container="{ message, acceptCallback, rejectCallback }">
       <div
-        class="relative w-full max-w-[800px] bg-white pt-14 pb-6 px-6 rounded-xl"
+        class="relative w-full max-w-[800px] bg-white dark:bg-neutral-800 pt-14 pb-6 px-6 rounded-xl"
       >
         <div
           class="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-fit bg-red-500 p-4 text-white rounded-full"
         >
           <IconDelete class="w-12 h-12" />
         </div>
-        <p class="mb-4">{{ message.message }}</p>
+        <p class="mb-4 dark:text-white">{{ message.message }}</p>
         <div class="w-full flex justify-center gap-x-2">
           <button
             class="w-[150px] border-[2px] border-sky-500 p-2 text-sky-500 font-bold rounded-lg"

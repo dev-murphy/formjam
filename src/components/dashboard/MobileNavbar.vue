@@ -76,11 +76,11 @@ watch(
 
 <template>
   <header>
-    <div class="bg-neutral-100 border-b border-neutral-200 px-6 py-3">
+    <div class="bg-neutral-100 dark:bg-neutral-800 border-b border-neutral-200 dark:border-neutral-700 px-6 py-3">
       <div class="container flex items-center justify-between">
         <RouterLink to="/" class="flex items-center gap-x-2">
           <img src="@/assets/images/logo.png" alt="logo" class="max-h-[30px]" />
-          <p class="text-2xl text-neutral-700">
+          <p class="text-2xl text-neutral-700 dark:text-white">
             Form<span class="text-neutral-400 font-bold">JAM</span>
           </p>
         </RouterLink>
@@ -88,7 +88,7 @@ watch(
         <div class="flex gap-x-3">
           <ThemeToggle />
           <button
-            class="custom-btn p-2 text-neutral-900 rounded-lg"
+            class="custom-btn p-2 text-neutral-900 dark:text-white rounded-lg"
             @click="toggleSearchInput"
             data-cy="mobile_nav_open_search"
           >
@@ -96,7 +96,7 @@ watch(
           </button>
 
           <button
-            class="custom-btn p-2 text-neutral-900 rounded-lg"
+            class="custom-btn p-2 text-neutral-900 dark:text-white rounded-lg"
             @click="toggle"
             data-cy="navbar_open_menu"
           >
@@ -120,7 +120,7 @@ watch(
 
     <div
       v-if="showSearchInput"
-      class="flex items-center justify-center gap-x-4 bg-gray-100 py-2"
+      class="flex items-center justify-center gap-x-4 bg-gray-100 dark:bg-neutral-900 py-2"
     >
       <XTextInput
         id="mobile-search-input"

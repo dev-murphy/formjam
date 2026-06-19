@@ -8,9 +8,9 @@ const router = useRouter();
 <template>
   <div class="flex flex-col items-center pt-16">
     <IconSuccess class="w-24 h-24" />
-    <h1 class="py-2 text-2xl font-medium">Response Saved.</h1>
-    <p>You submitted the form successfully.</p>
-    <button @click="router.go(-1)" class="underline">
+    <h1 class="py-2 text-2xl font-medium dark:text-white">Response Saved.</h1>
+    <p class="dark:text-white">You submitted the form successfully.</p>
+    <button @click="router.go(-1)" class="underline dark:text-white">
       Submit another response
     </button>
   </div>

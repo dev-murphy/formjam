@@ -1,15 +1,14 @@
 <script lang="ts" setup>
-import { onMounted, ref, shallowRef, watch } from "vue";
+import { nextTick, onMounted, ref, shallowRef, watch } from "vue";
 import type { Component } from "vue";
-import type { Question } from "@/types/pocketbase";
+import type { Question, QuestionChoice } from "@/types/pocketbase";
 
-// input components
 import XEditor from "@/components/inputs/Editor.vue";
 import XDropdown from "@/components/inputs/Dropdown.vue";
 import XToggle from "@/components/inputs/Toggle.vue";
 import Answer from "@/components/form/question/Answer.vue";
+import type { ChoiceItem } from "@/components/form/question/Answer.vue";
 
-// question type icons
 import IconCheckbox from "@/components/icons/question/Checkbox.vue";
 import IconShortText from "@/components/icons/question/ShortText.vue";
 import IconLongText from "@/components/icons/question/LongText.vue";
@@ -17,7 +16,6 @@ import IconSelect from "@/components/icons/question/Select.vue";
 import IconDropdown from "@/components/icons/question/Dropdown.vue";
 import IconLinearScale from "@/components/icons/question/LinearScale.vue";
 
-// controls icons
 import IconArrowDown from "@/components/icons/controls/ArrowDown.vue";
 import IconCopy from "@/components/icons/controls/Copy.vue";
 import IconDelete from "@/components/icons/controls/Delete.vue";
@@ -31,10 +29,7 @@ const props = withDefaults(
     disableDown?: boolean;
     isSelected: boolean;
   }>(),
-  {
-    disableDown: false,
-    disableUp: false,
-  },
+  { disableDown: false, disableUp: false },
 );
 
 const emits = defineEmits<{
@@ -46,62 +41,97 @@ const emits = defineEmits<{
 }>();
 
 const questionTypeOptions = shallowRef<
-  {
-    name: string;
-    value:
-      | "short-text"
-      | "paragraph"
-      | "single-choice"
-      | "dropdown"
-      | "checkboxes"
-      | "linear-scale";
-    icon: Component;
-  }[]
+  { name: string; value: Question["type"]; icon: Component }[]
 >([
-  { name: "Short Text", value: "short-text", icon: IconShortText },
-  { name: "Paragraph", value: "paragraph", icon: IconLongText },
-  { name: "Multiple Choice", value: "single-choice", icon: IconSelect },
-  { name: "Checkboxes", value: "checkboxes", icon: IconCheckbox },
+  { name: "Short Text", value: "short_text", icon: IconShortText },
+  { name: "Paragraph", value: "long_text", icon: IconLongText },
+  { name: "Multiple Choice", value: "single_choice", icon: IconSelect },
+  { name: "Checkboxes", value: "multiple_choice", icon: IconCheckbox },
   { name: "Dropdown", value: "dropdown", icon: IconDropdown },
-  { name: "Linear Scale", value: "linear-scale", icon: IconLinearScale },
+  { name: "Linear Scale", value: "linear_scale", icon: IconLinearScale },
 ]);
+
 const currentQuestionOption = shallowRef(questionTypeOptions.value[0]);
+const questionConfig = ref({ ...props.question });
 
-const questionConfig = ref(props.question);
+function choicesToItems(choices: QuestionChoice[] | undefined): ChoiceItem[] {
+  return (choices ?? []).map((c) => ({ id: c.id, label: c.label }));
+}
 
+const choiceItems = ref<ChoiceItem[]>(
+  choicesToItems(props.question.expand?.question_choices)
+);
+
+// Prevent feedback loop when props sync back from PocketBase
+let syncingFromProp = false;
+
+// When PocketBase returns real IDs after a save, update choiceItems so the
+// next save doesn't treat them as new choices again.
 watch(
-  questionConfig,
-  (questionData) => debounce(() => emits("update:question", questionData)),
-  { deep: true },
+  () => props.question.expand?.question_choices,
+  (incoming) => {
+    if (!incoming || incoming.length === 0) return;
+    // Only sync if IDs changed (e.g. new_ temp IDs replaced by PocketBase IDs)
+    const incomingIds = incoming.map((c) => c.id).join(",");
+    const currentIds = choiceItems.value.map((c) => c.id).join(",");
+    if (incomingIds === currentIds) return;
+
+    syncingFromProp = true;
+    choiceItems.value = choicesToItems(incoming);
+    nextTick(() => { syncingFromProp = false; });
+  }
+);
+
+function buildPayload(): Question {
+  return {
+    ...questionConfig.value,
+    expand: {
+      question_choices: choiceItems.value.map((item, i) => ({
+        id: item.id,
+        label: item.label,
+        order: i + 1,
+        question: props.question.id,
+        created: "",
+        updated: "",
+        collectionId: "",
+        collectionName: "",
+      })),
+    },
+  };
+}
+
+// Only watch the fields we care about — not expand — to avoid mutating
+// questionConfig inside the watcher (which caused the infinite loop).
+watch(
+  () => ({
+    label: questionConfig.value.label,
+    description: questionConfig.value.description,
+    type: questionConfig.value.type,
+    required: questionConfig.value.required,
+    settings: questionConfig.value.settings,
+    order: questionConfig.value.order,
+  }),
+  () => { if (!syncingFromProp) debounce(() => emits("update:question", buildPayload())); },
+  { deep: true }
 );
 
 watch(currentQuestionOption, (typeOption) => {
   questionConfig.value.type = typeOption.value;
 });
 
-function moveQuestion(direction: "up" | "down") {
-  if (
-    (props.disableDown && direction === "down") ||
-    (props.disableUp && direction === "up")
-  ) {
-    return;
-  }
+watch(choiceItems, () => {
+  if (!syncingFromProp) debounce(() => emits("update:question", buildPayload()));
+}, { deep: true });
 
-  if (direction === "up") {
-    emits("moveup:question");
-    return;
-  }
-  emits("movedown:question");
+function moveQuestion(direction: "up" | "down") {
+  if ((props.disableDown && direction === "down") || (props.disableUp && direction === "up")) return;
+  if (direction === "up") emits("moveup:question");
+  else emits("movedown:question");
 }
 
 onMounted(() => {
-  const _ = questionTypeOptions.value.find(
-    (question) => question.value === props.question.type,
-  );
-
-  if (_ !== undefined) {
-    currentQuestionOption.value = _;
-  }
+  const match = questionTypeOptions.value.find((opt) => opt.value === props.question.type);
+  if (match) currentQuestionOption.value = match;
 });
 </script>
 
@@ -110,61 +140,34 @@ onMounted(() => {
     class="group flex flex-col sm:flex-row bg-neutral-100 dark:bg-neutral-700 divide-y md:divide-y-0 md:divide-x divide-neutral-300 dark:divide-neutral-500 rounded-lg"
   >
     <div class="flex-grow p-3">
-      <XEditor
-        type="question"
-        placeholder="Question"
-        v-model="questionConfig.text"
-      />
+      <XEditor type="question" placeholder="Question" v-model="questionConfig.label" />
       <div class="pt-1">
-        <XEditor
-          type="description"
-          placeholder="Description"
-          v-model="questionConfig.description"
-        />
+        <XEditor type="description" placeholder="Description" v-model="questionConfig.description" />
       </div>
       <div class="sm:pt-3">
         <input
-          v-if="
-            currentQuestionOption.value === 'short-text' ||
-            currentQuestionOption.value === 'paragraph'
-          "
-          :id="`text-answer-${question.id}`"
+          v-if="currentQuestionOption.value === 'short_text' || currentQuestionOption.value === 'long_text'"
           type="text"
           class="w-full bg-white dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-600 py-2 px-4 placeholder:text-neutral-400 outline-none rounded-md"
           readonly
-          :placeholder="
-            currentQuestionOption.value === 'short-text'
-              ? 'Short text'
-              : 'Long text'
-          "
+          :placeholder="currentQuestionOption.value === 'short_text' ? 'Short text' : 'Long text'"
         />
         <Answer
           v-else-if="
-            currentQuestionOption.value === 'checkboxes' ||
-            currentQuestionOption.value === 'single-choice' ||
+            currentQuestionOption.value === 'multiple_choice' ||
+            currentQuestionOption.value === 'single_choice' ||
             currentQuestionOption.value === 'dropdown'
           "
-          v-model="questionConfig.answers"
+          v-model="choiceItems"
           :question-type="questionConfig.type"
         />
       </div>
     </div>
 
-    <div
-      class="w-full sm:max-w-[220px] flex flex-col md:divide-y md:divide-neutral-300 dark:md:divide-neutral-500"
-    >
+    <div class="w-full sm:max-w-[220px] flex flex-col md:divide-y md:divide-neutral-300 dark:md:divide-neutral-500">
       <div class="flex flex-grow flex-col gap-y-2 p-3">
-        <XDropdown
-          v-model="currentQuestionOption"
-          :options="questionTypeOptions"
-        />
-
-        <XToggle
-          label="Required"
-          :id="`toggle-${question.id}`"
-          v-model="questionConfig.required"
-        />
-
+        <XDropdown v-model="currentQuestionOption" :options="questionTypeOptions" />
+        <XToggle label="Required" :id="`toggle-${question.id}`" v-model="questionConfig.required" />
         <button class="flex items-center bg-sky-400 p-2 text-sm rounded-md">
           <IconAdjustment class="w-5 h-5 mr-2" />
           More Options
@@ -182,7 +185,6 @@ onMounted(() => {
         >
           <IconArrowDown class="w-6 h-6 rotate-180" />
         </button>
-
         <button
           class="w-1/4 h-10 flex items-center justify-center bg-sky-500 disabled:bg-sky-600 text-white disabled:text-sky-900 rounded-md"
           @click="moveQuestion('down')"
@@ -190,14 +192,12 @@ onMounted(() => {
         >
           <IconArrowDown class="w-6 h-6" />
         </button>
-
         <button
           class="w-1/4 h-10 flex items-center justify-center bg-sky-500 disabled:bg-sky-600 text-white disabled:text-sky-800 rounded-md"
           @click="$emit('duplicate:question', questionConfig)"
         >
           <IconCopy class="w-6 h-6" />
         </button>
-
         <button
           class="w-1/4 h-10 flex items-center justify-center bg-sky-500 text-white rounded-md"
           @click="$emit('delete:question', questionConfig.id)"

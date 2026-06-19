@@ -57,8 +57,7 @@ export interface SanitizedFormType {
   updated: string;
   title: string;
   description: string;
-  link: string;
-  preview_link: string;
+  slug: string;
   starred: boolean;
 }
 
@@ -66,6 +65,7 @@ export interface FormType extends SanitizedFormType {
   collectionId: string;
   collectionName: string;
   user: string;
+  status: "draft" | "published" | "closed";
 }
 
 export type QuestionResponse = {
@@ -76,15 +76,9 @@ export type QuestionResponse = {
   items: Question[];
 };
 
-interface Answer {
-  id: string;
-  type: string;
-  answer: string | string[];
-}
+export type AnswerValue = string | string[];
 
-export interface SubmittedForm {
-  user: string;
-  form: string;
-  is_submitted: boolean;
-  form_data: Answer[];
+export interface LocalAnswer {
+  recordId: string;
+  value: AnswerValue;
 }

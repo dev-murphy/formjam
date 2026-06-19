@@ -1,36 +1,35 @@
 import { useTitle } from "@vueuse/core";
 import pb from "@/db/pocketBase";
 import { autosizeTextarea } from "@/utils/textareaAutosize";
+import { nanoid } from "nanoid";
 
-// create form
 export async function createForm(): Promise<string> {
   const formData = await pb.collection("forms").create({
     title: "Untitled Form",
     description: "",
-    view: "list",
-    questions: [],
-    preview_link: "",
-    link: "",
+    status: "draft",
+    view_mode: "list",
+    starred: false,
+    slug: nanoid(10),
+    settings: {},
     user: pb.authStore.model?.id,
   });
 
-  const questionData = await pb.collection("questions").create({
-    text: "Question 1",
-    type: "single-choice",
-    answers: [],
+  await pb.collection("questions").create({
+    label: "Question 1",
+    description: "",
+    type: "single_choice",
+    required: false,
+    settings: {},
     form: formData.id,
-  });
-
-  pb.collection("forms").update(formData.id, {
-    ...formData,
-    questions: [questionData.id],
+    order: 1,
   });
 
   return formData.id;
 }
 
-export function getDefaultAnswer(questionType: string) {
-  return questionType === "checkboxes" ? ([] as string[]) : "";
+export function getDefaultAnswer(questionType: string): string | string[] {
+  return questionType === "multiple_choice" ? [] : "";
 }
 
 export function setupParagraphInputs(inputs: string[]) {

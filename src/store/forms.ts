@@ -3,8 +3,7 @@ import pb from "@/db/pocketBase";
 import type { Form } from "@/types/pocketbase";
 import { useQuestionStore } from "@/store/questions";
 
-export const useFormStore = defineStore({
-  id: "forms",
+export const useFormStore = defineStore("forms", {
   state: () => ({
     forms: [] as Form[],
     searchTerm: "",

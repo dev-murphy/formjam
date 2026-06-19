@@ -1,8 +1,7 @@
 import { defineStore } from "pinia";
 import { usePreferredColorScheme, useStorage } from "@vueuse/core";
 
-export const useSettingsStore = defineStore({
-  id: "settings",
+export const useSettingsStore = defineStore("settings", {
   state: () =>
     useStorage(
       "settings",

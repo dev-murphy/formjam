@@ -112,7 +112,7 @@ watch(
   (value) => {
     const isSame = editor.value?.getHTML() === value;
     if (isSame) return;
-    editor.value?.commands.setContent(value, false);
+    editor.value?.commands.setContent(value);
   }
 );
 
@@ -167,7 +167,6 @@ function createInputClass() {
   return baseClasses;
 }
 
-const menu = ref<HTMLElement>();
 const isMenuOpen = ref(false);
 
 onUnmounted(() => {
@@ -181,7 +180,6 @@ onUnmounted(() => {
 
     <div
       v-if="editor"
-      ref="menu"
       class="menu md:h-12 flex flex-col sm:flex-row items-center gap-x-1 pt-3 md:pt-0 pl-1 text-black dark:text-white overflow-hidden"
       :class="{ open: isMenuOpen }"
     >
@@ -278,6 +276,8 @@ onUnmounted(() => {
 </template>
 
 <style>
+@reference "@/style.css";
+
 .tiptap a {
   @apply text-primary-purple;
 }

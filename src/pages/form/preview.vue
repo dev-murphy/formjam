@@ -22,7 +22,6 @@ const formStore = useFormStore();
 const questionStore = useQuestionStore();
 
 const formTitle = ref("");
-const formTitleElem = ref<HTMLHeadingElement | null>(null);
 const formData = ref<Answer[]>([]);
 
 const title = computed(() => {
@@ -87,7 +86,6 @@ onMounted(async () => {
           <IconArrowDown class="w-8 h-8 rotate-90" />
         </RouterLink>
         <h1
-          ref="formTitleElem"
           v-html="formTitle"
           class="prose prose-2xl dark:text-white text-center"
         ></h1>

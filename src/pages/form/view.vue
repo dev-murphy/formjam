@@ -25,7 +25,6 @@ const questionStore = useQuestionStore();
 const settingsStore = useSettingsStore();
 
 const formTitle = ref("");
-const formTitleElem = ref<HTMLHeadingElement | null>(null);
 const formResponse = ref<SubmittedForm>({
   form: "",
   user: "",
@@ -67,7 +66,7 @@ watch(
 );
 
 async function newForm(formId: string) {
-  formResponse.value.user = pb.authStore.model?.id;
+  formResponse.value.user = pb.authStore.model?.id ?? "";
   formResponse.value.form = formId;
   const record = await pb
     .collection("submitted_forms")
@@ -134,7 +133,6 @@ onMounted(async () => {
   <div class="px-5 py-6">
     <form class="w-full max-w-[1000px] flex flex-col gap-3 mx-auto">
       <h1
-        ref="formTitleElem"
         v-html="formTitle"
         class="prose prose-2xl text-center"
       ></h1>

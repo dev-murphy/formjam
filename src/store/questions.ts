@@ -2,8 +2,7 @@ import { defineStore } from "pinia";
 import { Question } from "@/types/pocketbase";
 import pb from "@/db/pocketBase";
 
-export const useQuestionStore = defineStore({
-  id: "questions",
+export const useQuestionStore = defineStore("questions", {
   state: () => ({
     questions: [] as Question[],
     currentQuestion: {

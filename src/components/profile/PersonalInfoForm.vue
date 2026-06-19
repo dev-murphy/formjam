@@ -8,7 +8,7 @@ import * as yup from "yup";
 
 import XTextInput from "@/components/inputs/ValidatedTextInput.vue";
 
-let { firstName, lastName, email } = pb.authStore.model as UserType;
+let { firstName, lastName, email } = pb.authStore.model as unknown as UserType;
 
 const { handleSubmit } = useForm({
   initialValues: {
@@ -38,7 +38,7 @@ const onSubmit = handleSubmit(async ({ firstName, lastName }) => {
   try {
     await pb
       .collection("users")
-      .update(pb.authStore.model?.id, { firstName, lastName });
+      .update(pb.authStore.model!.id, { firstName, lastName });
   } catch (error: any) {
     // TODO: MURPHY ADD THIS
   }

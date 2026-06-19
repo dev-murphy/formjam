@@ -1,13 +1,26 @@
-/* TailwindCSS */
-@layer tailwind-base, primevue, tailwind-utilities;
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
 
-@layer tailwind-base {
-  @tailwind base;
-}
+/* Replaces darkMode: "class" */
+@custom-variant dark (&:where(.dark, .dark *));
 
-@layer tailwind-utilities {
-  @tailwind components;
-  @tailwind utilities;
+@theme {
+  /* Breakpoints — xs added, sm/md/lg/xl/2xl kept from default */
+  --breakpoint-xs: 375px;
+
+  /* Colors */
+  --color-primary-orange: #F1982E;
+  --color-primary-pink: #FF007A;
+  --color-primary-purple: #7000FF;
+  --color-primary-dark-100: #36323F;
+  --color-primary-dark-500: #1D1A2E;
+  --color-primary-dark-800: #05051E;
+  --color-primary-light-100: #F5F6FA;
+
+  /* Font families */
+  --font-epilogue: "Epilogue", sans-serif;
+  --font-inter: "Inter", sans-serif;
+  --font-rokkitt: "Rokkitt", serif;
 }
 
 /* General styles */

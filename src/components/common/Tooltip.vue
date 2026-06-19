@@ -40,6 +40,8 @@ defineProps<TooltipPropType>();
 </template>
 
 <style>
+@reference "@/style.css";
+
 .tooltip {
   @apply transition-all duration-500 delay-150 opacity-0;
 }

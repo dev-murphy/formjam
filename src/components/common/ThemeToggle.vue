@@ -40,6 +40,8 @@ const settingsStore = useSettingsStore();
 </template>
 
 <style scoped>
+@reference "@/style.css";
+
 .slider .switch {
   @apply absolute left-[2px] bottom-[2px] h-[24px] w-[24px] bg-white dark:bg-neutral-950 transition duration-200 rounded-full;
 }

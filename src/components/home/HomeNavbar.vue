@@ -91,6 +91,7 @@ function toggleNavDropdown() {
 </template>
 
 <style scoped>
+@reference "@/style.css";
 .btn::before {
   content: "";
   position: absolute;

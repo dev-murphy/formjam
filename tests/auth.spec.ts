@@ -3,30 +3,29 @@ import { faker } from "@faker-js/faker";
 import {
   login,
   logout,
+  submitLoginForm,
+  TEST_EMAIL_DOMAIN,
   validatePasswordInput,
   validateConfirmPasswordInput,
 } from "./helpers";
 
-const apiUrl = process.env.API_URL!;
+const apiUrl = process.env.VITE_POCKET_BASE ?? process.env.API_URL ?? "";
 
 test.describe("Login Tests", () => {
   test("should log in successfully", async ({ page }) => {
+    test.skip(
+      !process.env.USER_EMAIL || !process.env.USER_PASSWORD,
+      "Requires USER_EMAIL and USER_PASSWORD env vars",
+    );
     await login(page);
   });
 
   test("should fail to login", async ({ page }) => {
-    const responsePromise = page.waitForResponse(
-      (resp) =>
-        resp.url().includes("/api/collections/users/auth-with-password") &&
-        resp.request().method() === "POST",
-    );
-
     await page.goto("/auth/login");
     await page.locator('[data-cy="login_email_input"]').fill("test@test.com");
     await page.locator('[data-cy="login_password_input"]').fill("password");
-    await page.locator('[data-cy="login_submit_btn"]').click();
 
-    const response = await responsePromise;
+    const response = await submitLoginForm(page);
     expect(response.status()).toBe(400);
 
     await expect(
@@ -71,7 +70,7 @@ test.describe("Login Tests", () => {
   test("should redirect to homepage", async ({ page }) => {
     await page.goto("/auth/login");
     await page.locator('[data-cy="login_goto_home_link"]').click();
-    await expect(page).toHaveURL(/^\//);
+    await expect(page).toHaveURL("/");
   });
 });
 
@@ -80,7 +79,8 @@ test.describe("Signup Tests", () => {
     const user = {
       firstName: faker.person.firstName(),
       lastName: faker.person.lastName(),
-      email: faker.internet.email(),
+      // Dedicated domain so the cleanup teardown can safely sweep test users.
+      email: `e2e-${faker.string.uuid()}@${TEST_EMAIL_DOMAIN}`,
       password: "password",
     };
 
@@ -106,6 +106,10 @@ test.describe("Signup Tests", () => {
   });
 
   test("should fail to sign up with existing email", async ({ page }) => {
+    test.skip(
+      !process.env.USER_EMAIL || !process.env.USER_PASSWORD,
+      "Requires USER_EMAIL and USER_PASSWORD env vars",
+    );
     const responsePromise = page.waitForResponse(
       (resp) =>
         resp.url().includes("/api/collections/users/records") &&
@@ -135,7 +139,7 @@ test.describe("Signup Tests", () => {
 
     await expect(
       page.locator('[data-cy="server_error_message"]'),
-    ).toContainText("The email is invalid or already in use.");
+    ).toContainText("Value must be unique.");
     await expect(
       page.locator('[data-cy="server_error_message"]'),
     ).not.toBeVisible({ timeout: 8000 });
@@ -217,7 +221,7 @@ test.describe("Signup Tests", () => {
   test("should redirect to homepage", async ({ page }) => {
     await page.goto("/auth/signup");
     await page.locator('[data-cy="signup_goto_home_link"]').click();
-    await expect(page).toHaveURL(/^\//);
+    await expect(page).toHaveURL("/");
   });
 });
 
@@ -229,6 +233,10 @@ test.describe("Forgot Password Flow Tests", () => {
   });
 
   test("should submit reset link successfully", async ({ page }) => {
+    test.skip(
+      !process.env.USER_EMAIL,
+      "Requires USER_EMAIL env var",
+    );
     const responsePromise = page.waitForResponse(
       (resp) =>
         resp
@@ -264,6 +272,10 @@ test.describe("Forgot Password Flow Tests", () => {
   });
 
   test("should confirm new password successfully", async ({ page }) => {
+    test.skip(
+      !process.env.USER_PASSWORD,
+      "Requires USER_PASSWORD env var",
+    );
     await page.route(
       `${apiUrl}/api/collections/users/confirm-password-reset`,
       (route) => route.fulfill({ status: 204, body: "" }),
@@ -302,6 +314,10 @@ test.describe("Forgot Password Flow Tests", () => {
 
 test.describe("Logout Test", () => {
   test("should log out successfully", async ({ page }) => {
+    test.skip(
+      !process.env.USER_EMAIL || !process.env.USER_PASSWORD,
+      "Requires USER_EMAIL and USER_PASSWORD env vars",
+    );
     await login(page);
     await logout(page);
   });

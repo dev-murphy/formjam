@@ -69,11 +69,11 @@ watch(
 </script>
 
 <template>
-  <header class="bg-neutral-100 border-b border-neutral-400 px-6 py-3">
+  <header class="bg-neutral-100 dark:bg-neutral-800 border-b border-neutral-400 dark:border-neutral-700 px-6 py-3">
     <div class="container flex items-center justify-between">
       <RouterLink to="/" class="flex flex-shrink-0 items-center gap-x-2">
         <img src="@/assets/images/logo.png" alt="logo" class="w-8 h-8" />
-        <p class="text-2xl text-black">
+        <p class="text-2xl text-black dark:text-white">
           Form<span class="text-sky-700 font-bold">JAM</span>
         </p>
       </RouterLink>
@@ -89,7 +89,7 @@ watch(
       <div class="flex items-center gap-x-4">
         <ThemeToggle />
         <button
-          class="custom-btn p-2 text-neutral-900 rounded-lg"
+          class="custom-btn p-2 text-neutral-900 dark:text-white rounded-lg"
           @click="toggle"
           data-cy="navbar_open_menu"
         >

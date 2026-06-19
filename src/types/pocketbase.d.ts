@@ -1,13 +1,5 @@
 import type { BaseAuthStore, PocketBase, RecordService } from "pocketbase";
 
-// ** Dev Note **
-// These types def for pocketbase seems to only affect
-// retrieval of records from pocketbase. Methods such as
-// `getList`, `getOne`, etc.
-
-// It is completely useless for managing the data used to
-// create a record, sadly.
-
 interface BaseCollectionType {
   id: string;
   created: string;
@@ -16,39 +8,53 @@ interface BaseCollectionType {
   collectionName: string;
 }
 
-interface Answer extends BaseCollectionType {
-  text: string;
+export interface QuestionChoice extends BaseCollectionType {
   question: string;
+  label: string;
+  order: number;
 }
 
-interface Question extends BaseCollectionType {
-  text: string;
+export interface Question extends BaseCollectionType {
+  label: string;
   description: string;
   type:
-    | "short-text"
-    | "paragraph"
-    | "single-choice"
-    | "checkboxes"
+    | "short_text"
+    | "long_text"
+    | "single_choice"
+    | "multiple_choice"
     | "dropdown"
-    | "linear-scale";
+    | "linear_scale";
   order: number;
-  answers: {
-    id: string;
-    text: string;
-  }[];
   required: boolean;
+  settings: Record<string, unknown>;
   form: string;
+  expand?: {
+    question_choices: QuestionChoice[];
+  };
 }
 
-interface Form extends BaseCollectionType {
+export interface Form extends BaseCollectionType {
   title: string;
   description: string;
-  view: "list" | "step";
+  status: "draft" | "published" | "closed";
+  view_mode: "list" | "step";
   starred: boolean;
-  questions: string[];
-  preview_link: string;
-  link: string;
   user: string;
+  slug: string;
+  settings: Record<string, unknown>;
+}
+
+export interface Response extends BaseCollectionType {
+  form: string;
+  respondent: string;
+  is_complete: boolean;
+  submitted_at: string;
+}
+
+export interface ResponseAnswer extends BaseCollectionType {
+  response: string;
+  question: string;
+  value: string | string[] | number | null;
 }
 
 export interface UserType {
@@ -59,10 +65,12 @@ export interface UserType {
   passwordConfirm: string;
 }
 
-export interface TypedPocketBase extends Pocketbase {
+export interface TypedPocketBase extends PocketBase {
   collection(idOrName: string): RecordService;
-  collection(idOrName: "answers"): RecordService<Answer>;
-  collection(idOrName: "questions"): RecordService<Question>;
   collection(idOrName: "forms"): RecordService<Form>;
+  collection(idOrName: "questions"): RecordService<Question>;
+  collection(idOrName: "question_choices"): RecordService<QuestionChoice>;
+  collection(idOrName: "responses"): RecordService<Response>;
+  collection(idOrName: "response_answers"): RecordService<ResponseAnswer>;
   authStore: BaseAuthStore;
 }

@@ -12,18 +12,26 @@ defineProps<{ view: "list" | "grid" }>();
 const router = useRouter();
 const formStore = useFormStore();
 const isLoading = ref(false);
+const error = ref("");
 
 async function gotoEditFormPage() {
   isLoading.value = true;
-  const id = await formStore.createForm();
-  isLoading.value = false;
-
-  router.push({ name: "EditForm", params: { formId: id } });
+  error.value = "";
+  try {
+    const id = await formStore.createForm();
+    router.push({ name: "EditForm", params: { formId: id } });
+  } catch (e: any) {
+    error.value = "Failed to create form. Please try again.";
+    console.error(e);
+  } finally {
+    isLoading.value = false;
+  }
 }
 </script>
 
 <template>
   <div class="max-w-full">
+    <p v-if="error" class="text-sm text-red-500 mb-2">{{ error }}</p>
     <button
       v-if="view === 'grid'"
       role="button"
@@ -48,7 +56,7 @@ async function gotoEditFormPage() {
         }"
       >
         <p
-          class="font-bold font-epilogue"
+          class="font-bold font-epilogue dark:text-white"
           :class="{
             'text-xl': smallerOrEqual,
             'text-lg pt-4': !smallerOrEqual,
@@ -65,13 +73,14 @@ async function gotoEditFormPage() {
       v-else
       class="bg-sky-200 dark:bg-neutral-700 dark:border dark:border-transparent dark:hover:border-neutral-600 flex items-center justify-between p-3 rounded-2xl"
     >
-      <h1 class="text-lg">
+      <h1 class="text-lg dark:text-white">
         <span v-if="smallerOrEqual">Want a new form?</span>
         <span v-else>Do you want create a new form?</span>
       </h1>
       <button
         class="custom-btn flex items-center gap-x-1 p-2 text-sky-700 dark:text-neutral-800 font-medium rounded-lg"
         data-cy="create_form_btn"
+        @click="gotoEditFormPage"
       >
         <IconAdd class="hidden sm:block w-6 h-6" />
         <p>Create <span class="hidden sm:inline"> blank form </span></p>

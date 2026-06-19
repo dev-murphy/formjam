@@ -83,11 +83,14 @@ function triggerDeleteFormsEvent() {
 
 onMounted(async () => {
   isLoading.value = true;
-  await formStore.fetchForms();
-  if (route.query.search) {
-    formStore.searchTerm = route.query.search as string;
+  try {
+    await formStore.fetchForms();
+    if (route.query.search) {
+      formStore.searchTerm = route.query.search as string;
+    }
+  } finally {
+    isLoading.value = false;
   }
-  isLoading.value = false;
 });
 </script>
 

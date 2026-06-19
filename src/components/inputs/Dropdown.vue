@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { ref } from "vue";
+import { onClickOutside } from "@vueuse/core";
 import { DropdownEmitType, DropdownPropType } from "@/types/inputs";
 
 import IconArrowDown from "@/components/icons/controls/ArrowDown.vue";
@@ -12,17 +13,22 @@ withDefaults(defineProps<DropdownPropType>(), {
 
 const emits = defineEmits<DropdownEmitType>();
 
+const dropdownRef = ref<HTMLElement | null>(null);
 const showDropdown = ref(false);
 function toggleDropdown() {
   showDropdown.value = !showDropdown.value;
 }
+
+onClickOutside(dropdownRef, () => {
+  showDropdown.value = false;
+});
 </script>
 
 <template>
-  <div class="relative dark:text-black">
+  <div ref="dropdownRef" class="relative dark:text-white">
     <div
       v-if="showSelectedOption"
-      class="flex items-center justify-between bg-neutral-50 hover:bg-neutral-100 border border-neutral-200 hover:border-neutral-300 px-2 py-2 rounded-md cursor-pointer"
+      class="flex items-center justify-between bg-neutral-50 dark:bg-neutral-800 hover:bg-neutral-100 dark:hover:bg-neutral-700 border border-neutral-200 dark:border-neutral-600 hover:border-neutral-300 dark:hover:border-neutral-500 px-2 py-2 rounded-md cursor-pointer"
       @click="toggleDropdown"
     >
       <p class="select-none flex items-center gap-x-2 pr-2 text-sm">
@@ -38,7 +44,7 @@ function toggleDropdown() {
 
     <div
       v-else
-      class="flex items-center justify-between bg-neutral-50 hover:bg-neutral-100 border border-neutral-200 hover:border-neutral-300 px-1.5 py-1.5 rounded-md cursor-pointer"
+      class="flex items-center justify-between bg-neutral-50 dark:bg-neutral-800 hover:bg-neutral-100 dark:hover:bg-neutral-700 border border-neutral-200 dark:border-neutral-600 hover:border-neutral-300 dark:hover:border-neutral-500 px-1.5 py-1.5 rounded-md cursor-pointer"
       @click="toggleDropdown"
     >
       <IconMenu class="w-6 h-6" />
@@ -47,15 +53,15 @@ function toggleDropdown() {
     <Transition name="slide-fade">
       <div
         v-if="showDropdown"
-        class="absolute top-full translate-y-2 right-0 flex flex-col bg-neutral-50 border border-neutral-200 rounded-md z-10"
+        class="absolute top-full translate-y-2 right-0 flex flex-col bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-600 rounded-md z-10"
         :class="{ 'w-full': showSelectedOption, 'w-max': !showSelectedOption }"
         @click.stop="toggleDropdown"
       >
         <p
           v-for="option in options"
-          class="flex items-center gap-x-3 hover:bg-neutral-200 px-3 py-1.5 cursor-pointer select-none"
+          class="flex items-center gap-x-3 hover:bg-neutral-200 dark:hover:bg-neutral-700 px-3 py-1.5 cursor-pointer select-none"
           :class="{
-            'bg-gray-200 pointer-events-none': option.name === modelValue.name,
+            'bg-gray-200 dark:bg-neutral-700 pointer-events-none': option.name === modelValue.name,
           }"
           @click="$emit('update:modelValue', option)"
         >

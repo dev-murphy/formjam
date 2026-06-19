@@ -1,45 +1,41 @@
 <script lang="ts" setup>
 import { onMounted, ref, watch } from "vue";
-import pb from "@/db/pocketBase";
+import { useFormStore } from "@/store/forms";
 import { setPageTitle } from "@/utils/form";
+import debounce from "@/utils/debouncer";
+import pb from "@/db/pocketBase";
+import type { Form } from "@/types/pocketbase";
 
 import XEditor from "@/components/inputs/Editor.vue";
 
 const props = defineProps<{ formId: string }>();
+const formStore = useFormStore();
 
 const title = ref("");
 const description = ref("");
 
-watch(
-  () => title.value,
-  async (newTitle) => {
-    if (!props.formId) return;
-
-    let formData;
-    if (title.value === "") {
-      formData = await pb.collection("forms").getOne(props.formId);
-    }
-    await pb.collection("forms").update(props.formId, {
-      ...formData,
+watch(title, (newTitle) => {
+  if (!props.formId) return;
+  debounce(async () => {
+    await formStore.updateFormField(props.formId, {
       title: newTitle !== "<p></p>" ? newTitle : "Untitled Form",
     });
     setPageTitle(newTitle);
-  }
-);
+  }, 800);
+});
 
-watch(
-  () => description.value,
-  async (newDescription) => {
-    const formData = await pb.collection("forms").getOne(props.formId);
-    await pb.collection("forms").update(props.formId, {
-      ...formData,
-      description: newDescription,
-    });
-  }
-);
+watch(description, (newDescription) => {
+  if (!props.formId) return;
+  debounce(async () => {
+    await formStore.updateFormField(props.formId, { description: newDescription });
+  }, 800);
+});
 
 onMounted(async () => {
-  const formData = await pb.collection("forms").getOne(props.formId);
+  let formData = formStore.forms.find((f) => f.id === props.formId);
+  if (!formData) {
+    formData = await pb.collection("forms").getOne<Form>(props.formId);
+  }
   title.value = formData.title === "Untitled Form" ? "" : formData.title;
   description.value = formData.description;
 });

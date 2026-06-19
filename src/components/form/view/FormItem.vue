@@ -107,11 +107,11 @@ function cancel() {
     <div class="flex flex-wrap items-center justify-between flex-grow ml-3">
       <div ref="titleElem" class="hidden" v-html="title"></div>
       <p
-        class="w-full max-w-[150px] sm:max-w-[300px] font-medium truncate"
+        class="w-full max-w-[150px] sm:max-w-[300px] font-medium truncate dark:text-white"
         v-html="unformattedTitle"
       ></p>
 
-      <p class="text-sm sm:text-base">
+      <p class="text-sm sm:text-base dark:text-neutral-400">
         <span class="hidden sm:inline">Last opened: </span>{{ lastEdited }}
       </p>
     </div>

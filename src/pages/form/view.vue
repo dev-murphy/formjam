@@ -6,6 +6,7 @@ import type { LocalAnswer, AnswerValue } from "@/types/form";
 import pb from "@/db/pocketBase";
 
 import debounce from "@/utils/debouncer";
+import { preventNonNumericInput } from "@/utils/common";
 import { setupParagraphInputs } from "@/utils/form";
 import { validateAnswer } from "@/utils/validation";
 
@@ -244,6 +245,7 @@ onMounted(async () => {
               type="number"
               v-model="localAnswers[question.id].value"
               @input="delete errors[question.id]"
+              @keydown="preventNonNumericInput"
               placeholder="Enter a number"
               class="w-full bg-transparent py-2 border-b border-gray-200 hover:border-gray-400 focus:border-sky-500 dark:placeholder:text-neutral-400 dark:text-white outline-none"
               @keypress.enter.prevent

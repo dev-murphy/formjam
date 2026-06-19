@@ -1,8 +1,10 @@
 <script lang="ts" setup>
-import { onMounted, ref, computed } from "vue";
-import { useRoute } from "vue-router";
+import { onMounted, ref, computed, watch } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import { useTitle } from "@vueuse/core";
 import { setupParagraphInputs } from "@/utils/form";
+import { preventNonNumericInput } from "@/utils/common";
+import { validateAnswer, isEmpty } from "@/utils/validation";
 import type { AnswerValue } from "@/types/form";
 
 import { useFormStore } from "@/store/forms";
@@ -15,12 +17,18 @@ import Checkbox from "primevue/checkbox";
 import RadioButton from "primevue/radiobutton";
 
 const route = useRoute();
+const router = useRouter();
 const formStore = useFormStore();
 const questionStore = useQuestionStore();
 
 const formTitle = ref("");
 // keyed by question.id, no PocketBase persistence (preview only)
 const localAnswers = ref<Record<string, AnswerValue>>({});
+// validation errors keyed by question.id
+const errors = ref<Record<string, string>>({});
+// becomes true after the first submit attempt; gates "required" errors so empty
+// required fields don't light up red before the respondent has tried to submit.
+const submitted = ref(false);
 
 const title = computed(() => {
   const elem = document.createElement("h1");
@@ -39,7 +47,39 @@ function clearForm() {
   for (const question of questionStore.questions) {
     localAnswers.value[question.id] = getDefaultValue(question.type);
   }
+  errors.value = {};
+  submitted.value = false;
 }
+
+function validateForm(): boolean {
+  const next: Record<string, string> = {};
+  for (const question of questionStore.questions) {
+    const answer = localAnswers.value[question.id] ?? "";
+
+    // Required fields must be answered before the form can be submitted.
+    if (submitted.value && question.required && isEmpty(answer)) {
+      next[question.id] = "This field is required.";
+      continue;
+    }
+
+    const validation = question.settings?.validation;
+    if (!validation?.enabled) continue;
+    const error = validateAnswer(answer, validation);
+    if (error) next[question.id] = error;
+  }
+  errors.value = next;
+  return Object.keys(next).length === 0;
+}
+
+function submit() {
+  submitted.value = true;
+  if (!validateForm()) return;
+  router.push(`/form/${route.params.formId}/success`);
+}
+
+// Re-validate live as the respondent types into / selects answers so errors
+// surface (and clear) immediately, not only on submit.
+watch(localAnswers, () => validateForm(), { deep: true });
 
 onMounted(async () => {
   const formId = route.params.formId as string;
@@ -92,7 +132,12 @@ onMounted(async () => {
       <div
         v-for="question in questionStore.questions"
         :key="question.id"
-        class="w-full dark:bg-neutral-700 flex flex-col border border-gray-300 dark:border-transparent p-4 mx-auto shadow-md rounded-lg"
+        class="w-full dark:bg-neutral-700 flex flex-col border p-4 mx-auto shadow-md rounded-lg"
+        :class="
+          errors[question.id]
+            ? 'border-red-400'
+            : 'border-gray-300 dark:border-transparent'
+        "
       >
         <h2
           v-html="
@@ -135,6 +180,74 @@ onMounted(async () => {
               data-lpignore="true"
               class="w-full h-8 bg-transparent py-2 border-b border-gray-200 hover:border-gray-400 focus:border-sky-500 dark:placeholder:text-neutral-400 dark:text-white resize-none outline-none"
             />
+          </div>
+
+          <div
+            v-else-if="question.type === 'number'"
+            class="flex items-center gap-x-3"
+          >
+            <p class="font-rokkitt text-[26px] dark:text-sky-400">#</p>
+            <input
+              type="number"
+              v-model="localAnswers[question.id]"
+              @input="delete errors[question.id]"
+              @keydown="preventNonNumericInput"
+              placeholder="Enter a number"
+              class="w-full bg-transparent py-2 border-b border-gray-200 hover:border-gray-400 focus:border-sky-500 dark:placeholder:text-neutral-400 dark:text-white outline-none"
+              @keypress.enter.prevent
+            />
+          </div>
+
+          <div
+            v-else-if="question.type === 'email'"
+            class="flex items-center gap-x-3"
+          >
+            <p class="font-rokkitt text-[26px] dark:text-sky-400">@</p>
+            <input
+              type="email"
+              v-model="localAnswers[question.id]"
+              @input="delete errors[question.id]"
+              placeholder="email@example.com"
+              class="w-full bg-transparent py-2 border-b border-gray-200 hover:border-gray-400 focus:border-sky-500 dark:placeholder:text-neutral-400 dark:text-white outline-none"
+              @keypress.enter.prevent
+            />
+          </div>
+
+          <div
+            v-else-if="question.type === 'date'"
+            class="flex items-center gap-x-3"
+          >
+            <p class="font-rokkitt text-[26px] dark:text-sky-400">D</p>
+            <input
+              type="date"
+              v-model="localAnswers[question.id]"
+              @input="delete errors[question.id]"
+              class="w-full bg-transparent py-2 border-b border-gray-200 hover:border-gray-400 focus:border-sky-500 dark:text-white outline-none"
+            />
+          </div>
+
+          <div
+            v-else-if="question.type === 'rating'"
+            class="flex items-center gap-1"
+          >
+            <button
+              v-for="n in 5"
+              :key="n"
+              type="button"
+              @click="
+                localAnswers[question.id] = String(n);
+                delete errors[question.id];
+              "
+              class="text-3xl leading-none transition-colors"
+              :class="
+                n <= Number(localAnswers[question.id])
+                  ? 'text-yellow-400'
+                  : 'text-gray-300 hover:text-yellow-200'
+              "
+              :aria-label="`Rate ${n}`"
+            >
+              ★
+            </button>
           </div>
 
           <template
@@ -209,14 +322,19 @@ onMounted(async () => {
             </label>
           </div>
         </div>
+
+        <p v-if="errors[question.id]" class="mt-2 text-sm text-red-500">
+          {{ errors[question.id] }}
+        </p>
       </div>
 
       <div class="flex justify-between">
-        <RouterLink :to="`/form/${route.params.formId}/success`">
-          <button class="custom-btn py-2 px-5 font-medium rounded-lg">
-            Submit Form
-          </button>
-        </RouterLink>
+        <button
+          @click.prevent="submit"
+          class="custom-btn py-2 px-5 font-medium rounded-lg"
+        >
+          Submit Form
+        </button>
 
         <button
           role="button"

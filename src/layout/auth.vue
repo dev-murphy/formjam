@@ -9,7 +9,7 @@ const settingsStore = useSettingsStore();
 
 <template>
   <main
-    class="min-h-[100dvh] bg-primary-light-100 dark:bg-primary-dark-800 text-white flex flex-col items-center justify-center"
+    class="min-h-[100dvh] bg-primary-light-100 dark:bg-primary-dark-800 text-primary-dark-800 dark:text-white flex flex-col items-center justify-center"
   >
     <div
       class="absolute top-3 right-3 flex items-center gap-x-4 sm:py-2 sm:pl-3 sm:pr-2 bg-white/70 dark:bg-black/30 sm:border border-gray-300 dark:border-gray-600 text-black dark:text-white font-medium rounded-full"

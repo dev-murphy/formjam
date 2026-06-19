@@ -26,6 +26,14 @@
 /* General styles */
 body {
   font-family: "Inter", sans-serif;
+  /* Universal text color — defined once here for both themes instead of
+     repeating `dark:text-white` on every element. Light mode gets near-black
+     text, dark mode gets white; per-element overrides still win where needed. */
+  color: var(--color-primary-dark-800);
+}
+
+.dark body {
+  color: #ffffff;
 }
 
 .container {

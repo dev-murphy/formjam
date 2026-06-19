@@ -132,7 +132,7 @@ export function getCondition(
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-function isEmpty(answer: unknown): boolean {
+export function isEmpty(answer: unknown): boolean {
   if (Array.isArray(answer)) return answer.length === 0;
   return answer === null || answer === undefined || answer === "";
 }

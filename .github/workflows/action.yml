@@ -54,9 +54,11 @@ jobs:
         env:
           CI: true
           BASE_URL: ${{ secrets.BASE_URL }}
-          API_URL: ${{ secrets.API_URL }}
+          VITE_POCKET_BASE: ${{ secrets.VITE_POCKET_BASE }}
           USER_EMAIL: ${{ secrets.USER_EMAIL }}
           USER_PASSWORD: ${{ secrets.USER_PASSWORD }}
+          PB_SUPERUSER_EMAIL: ${{ secrets.PB_SUPERUSER_EMAIL }}
+          PB_SUPERUSER_PASSWORD: ${{ secrets.PB_SUPERUSER_PASSWORD }}
 
       - name: Upload test report
         uses: actions/upload-artifact@v4

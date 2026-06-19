@@ -12,6 +12,9 @@ dist
 dist-ssr
 *.local
 
+# AI
+.claudeis 
+
 # Envs
 .env
 

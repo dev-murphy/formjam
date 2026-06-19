@@ -1,13 +1,15 @@
 <script lang="ts" setup>
-import { nextTick, onMounted, ref, shallowRef, watch } from "vue";
+import { computed, nextTick, onMounted, ref, shallowRef, watch } from "vue";
 import type { Component } from "vue";
-import type { Question, QuestionChoice } from "@/types/pocketbase";
+import type { Question, QuestionChoice, QuestionType } from "@/types/pocketbase";
 
 import XEditor from "@/components/inputs/Editor.vue";
 import XDropdown from "@/components/inputs/Dropdown.vue";
 import XToggle from "@/components/inputs/Toggle.vue";
 import Answer from "@/components/form/question/Answer.vue";
 import type { ChoiceItem } from "@/components/form/question/Answer.vue";
+import QuestionValidation from "@/components/form/question/QuestionValidation.vue";
+import { supportsValidation } from "@/utils/validation";
 
 import IconCheckbox from "@/components/icons/question/Checkbox.vue";
 import IconShortText from "@/components/icons/question/ShortText.vue";
@@ -15,6 +17,10 @@ import IconLongText from "@/components/icons/question/LongText.vue";
 import IconSelect from "@/components/icons/question/Select.vue";
 import IconDropdown from "@/components/icons/question/Dropdown.vue";
 import IconLinearScale from "@/components/icons/question/LinearScale.vue";
+import IconNumber from "@/components/icons/question/Number.vue";
+import IconEmail from "@/components/icons/question/Email.vue";
+import IconDate from "@/components/icons/question/Date.vue";
+import IconRating from "@/components/icons/question/Rating.vue";
 
 import IconArrowDown from "@/components/icons/controls/ArrowDown.vue";
 import IconCopy from "@/components/icons/controls/Copy.vue";
@@ -41,7 +47,7 @@ const emits = defineEmits<{
 }>();
 
 const questionTypeOptions = shallowRef<
-  { name: string; value: Question["type"]; icon: Component }[]
+  { name: string; value: QuestionType; icon: Component }[]
 >([
   { name: "Short Text", value: "short_text", icon: IconShortText },
   { name: "Paragraph", value: "long_text", icon: IconLongText },
@@ -49,10 +55,25 @@ const questionTypeOptions = shallowRef<
   { name: "Checkboxes", value: "multiple_choice", icon: IconCheckbox },
   { name: "Dropdown", value: "dropdown", icon: IconDropdown },
   { name: "Linear Scale", value: "linear_scale", icon: IconLinearScale },
+  { name: "Number", value: "number", icon: IconNumber },
+  { name: "Email", value: "email", icon: IconEmail },
+  { name: "Date", value: "date", icon: IconDate },
+  { name: "Rating", value: "rating", icon: IconRating },
 ]);
 
 const currentQuestionOption = shallowRef(questionTypeOptions.value[0]);
 const questionConfig = ref({ ...props.question });
+const showValidation = ref(false);
+
+// Validation config is persisted inside the question's `settings` JSON. Proxy it
+// so the panel can v-model it directly while lazily creating `settings`.
+const validationModel = computed({
+  get: () => questionConfig.value.settings?.validation ?? null,
+  set: (value) => {
+    if (!questionConfig.value.settings) questionConfig.value.settings = {};
+    questionConfig.value.settings.validation = value;
+  },
+});
 
 function choicesToItems(choices: QuestionChoice[] | undefined): ChoiceItem[] {
   return (choices ?? []).map((c) => ({ id: c.id, label: c.label }));
@@ -183,6 +204,33 @@ onMounted(() => {
               : 'Long text'
           "
         />
+        <input
+          v-else-if="currentQuestionOption.value === 'number'"
+          type="number"
+          class="w-full bg-white dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-600 py-2 px-4 placeholder:text-neutral-400 outline-none rounded-md"
+          readonly
+          placeholder="Number"
+        />
+        <input
+          v-else-if="currentQuestionOption.value === 'email'"
+          type="text"
+          class="w-full bg-white dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-600 py-2 px-4 placeholder:text-neutral-400 outline-none rounded-md"
+          readonly
+          placeholder="email@example.com"
+        />
+        <input
+          v-else-if="currentQuestionOption.value === 'date'"
+          type="text"
+          class="w-full bg-white dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-600 py-2 px-4 placeholder:text-neutral-400 outline-none rounded-md"
+          readonly
+          placeholder="dd/mm/yyyy"
+        />
+        <div
+          v-else-if="currentQuestionOption.value === 'rating'"
+          class="flex items-center gap-x-1 text-neutral-300 dark:text-neutral-500"
+        >
+          <IconRating v-for="n in 5" :key="n" class="w-7 h-7" />
+        </div>
         <Answer
           v-else-if="
             currentQuestionOption.value === 'multiple_choice' ||
@@ -193,6 +241,12 @@ onMounted(() => {
           :question-type="questionConfig.type"
         />
       </div>
+
+      <QuestionValidation
+        v-if="showValidation && supportsValidation(questionConfig.type)"
+        v-model="validationModel"
+        :question-type="questionConfig.type"
+      />
     </div>
 
     <div
@@ -208,9 +262,13 @@ onMounted(() => {
           :id="`toggle-${question.id}`"
           v-model="questionConfig.required"
         />
-        <button class="flex items-center bg-sky-400 p-2 text-sm rounded-md">
+        <button
+          v-if="supportsValidation(currentQuestionOption.value)"
+          class="flex items-center bg-sky-400 hover:bg-sky-500 p-2 text-sm rounded-md"
+          @click="showValidation = !showValidation"
+        >
           <IconAdjustment class="w-5 h-5 mr-2" />
-          More Options
+          {{ showValidation ? "Hide Options" : "More Options" }}
         </button>
       </div>
 

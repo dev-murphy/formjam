@@ -4,15 +4,15 @@ import router from "@/router";
 import { createPinia } from "pinia";
 
 import PrimeVue from "primevue/config";
+import Lara from "@primevue/themes/lara";
 import Tooltip from "primevue/tooltip";
 import ConfirmationService from "primevue/confirmationservice";
 import ToastService from "primevue/toastservice";
-import "primevue/resources/themes/lara-light-green/theme.css";
 
 createApp(App)
   .use(router)
   .use(createPinia())
-  .use(PrimeVue)
+  .use(PrimeVue, { theme: { preset: Lara } })
   .use(ConfirmationService)
   .use(ToastService)
   .directive('tooltip', Tooltip)

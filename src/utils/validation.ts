@@ -1,7 +1,4 @@
-import type {
-  QuestionType,
-  QuestionValidation,
-} from "@/types/pocketbase";
+import type { QuestionType, QuestionValidation } from "@/types/pocketbase";
 import type { DropdownOption } from "@/types/inputs";
 
 // ── Registry ────────────────────────────────────────────────────────────────

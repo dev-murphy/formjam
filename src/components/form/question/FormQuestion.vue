@@ -1,7 +1,11 @@
 <script lang="ts" setup>
 import { computed, nextTick, onMounted, ref, shallowRef, watch } from "vue";
 import type { Component } from "vue";
-import type { Question, QuestionChoice, QuestionType } from "@/types/pocketbase";
+import type {
+  Question,
+  QuestionChoice,
+  QuestionType,
+} from "@/types/pocketbase";
 
 import XEditor from "@/components/inputs/Editor.vue";
 import XDropdown from "@/components/inputs/Dropdown.vue";

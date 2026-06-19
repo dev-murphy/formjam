@@ -265,7 +265,10 @@ onMounted(async () => {
             />
           </div>
 
-          <div v-if="question.type === 'date'" class="flex items-center gap-x-3">
+          <div
+            v-if="question.type === 'date'"
+            class="flex items-center gap-x-3"
+          >
             <p class="font-rokkitt text-[26px] dark:text-sky-400">D</p>
             <input
               type="date"
@@ -275,7 +278,10 @@ onMounted(async () => {
             />
           </div>
 
-          <div v-if="question.type === 'rating'" class="flex items-center gap-1">
+          <div
+            v-if="question.type === 'rating'"
+            class="flex items-center gap-1"
+          >
             <button
               v-for="n in 5"
               :key="n"

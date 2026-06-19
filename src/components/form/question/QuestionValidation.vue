@@ -53,7 +53,8 @@ const selectedCondition = computed<DropdownOption>(
 );
 
 const operands = computed(
-  () => getCondition(config.value.category, config.value.condition)?.operands ?? 0,
+  () =>
+    getCondition(config.value.category, config.value.condition)?.operands ?? 0,
 );
 
 const inputType = computed(() => {
@@ -134,9 +135,7 @@ function onConditionChange(option: DropdownOption) {
         <input
           :type="inputType"
           :value="config.value"
-          @input="
-            update({ value: ($event.target as HTMLInputElement).value })
-          "
+          @input="update({ value: ($event.target as HTMLInputElement).value })"
           :placeholder="operands === 2 ? 'Min value' : 'Value'"
           class="w-full bg-neutral-50 dark:bg-neutral-700 border border-neutral-300 dark:border-neutral-600 py-1.5 px-3 text-sm rounded-md outline-none"
         />
@@ -144,9 +143,7 @@ function onConditionChange(option: DropdownOption) {
           v-if="operands === 2"
           :type="inputType"
           :value="config.value2"
-          @input="
-            update({ value2: ($event.target as HTMLInputElement).value })
-          "
+          @input="update({ value2: ($event.target as HTMLInputElement).value })"
           placeholder="Max value"
           class="w-full bg-neutral-50 dark:bg-neutral-700 border border-neutral-300 dark:border-neutral-600 py-1.5 px-3 text-sm rounded-md outline-none"
         />

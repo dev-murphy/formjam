@@ -53,7 +53,10 @@ jobs:
         run: pnpm test:e2e
         env:
           CI: true
-          BASE_URL: ${{ secrets.BASE_URL }}
+          # No BASE_URL: target the branch's own code. Playwright boots `pnpm dev`
+          # locally (see playwright.config.ts) so PR CI tests this PR's frontend,
+          # not whatever is currently deployed. VITE_POCKET_BASE points that local
+          # build at the real PocketBase backend.
           VITE_POCKET_BASE: ${{ secrets.VITE_POCKET_BASE }}
           USER_EMAIL: ${{ secrets.USER_EMAIL }}
           USER_PASSWORD: ${{ secrets.USER_PASSWORD }}

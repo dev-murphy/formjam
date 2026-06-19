@@ -3,6 +3,12 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
+// Target URL for the tests. Defaults to the local dev server; set BASE_URL to a
+// deployed URL to run the suite against that environment instead.
+const baseURL = process.env.BASE_URL ?? "http://localhost:5173";
+const isLocalTarget =
+  baseURL.includes("localhost") || baseURL.includes("127.0.0.1");
+
 export default defineConfig({
   testDir: "./tests",
   fullyParallel: true,
@@ -14,16 +20,21 @@ export default defineConfig({
   expect: { timeout: 10_000 },
 
   use: {
-    baseURL: process.env.BASE_URL ?? "http://localhost:5173",
+    baseURL,
     trace: "on-first-retry",
   },
 
-  webServer: {
-    command: "pnpm dev",
-    url: process.env.BASE_URL ?? "http://localhost:5173",
-    reuseExistingServer: !process.env.CI,
-    timeout: 120_000,
-  },
+  // Only start a local dev server when targeting localhost. When BASE_URL points
+  // at a deployed environment, run against it directly (no server to wait on, so
+  // it can't time out waiting for one).
+  webServer: isLocalTarget
+    ? {
+        command: "pnpm dev",
+        url: baseURL,
+        reuseExistingServer: !process.env.CI,
+        timeout: 120_000,
+      }
+    : undefined,
 
   projects: [
     // Logs in once and saves the session; runs before everything else.

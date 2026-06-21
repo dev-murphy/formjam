@@ -1,5 +1,28 @@
 # Changelog
 
+## [1.11.0](https://github.com/dev-murphy/formjam/compare/v1.10.0...v1.11.0) (2026-06-21)
+
+
+### Features
+
+* add form responses dashboard with analytics views ([405c5e4](https://github.com/dev-murphy/formjam/commit/405c5e4a26036e6cb907db9945a04873f77876f9))
+
+
+### Miscellaneous
+
+* **main:** formatted codebase ([909c1d4](https://github.com/dev-murphy/formjam/commit/909c1d4102e63d5f2ad7628465db4b2c88bd8336))
+
+
+### CI/CD
+
+* add desktop release workflow for Tauri app ([275e9a5](https://github.com/dev-murphy/formjam/commit/275e9a51277c080c953d835b660500ba4fb2eae9))
+* use PAT for release-please so it triggers the desktop build ([e3312c7](https://github.com/dev-murphy/formjam/commit/e3312c71b30e20568b06f8a0234a349d1fcb9217))
+
+
+### Build System
+
+* migrate Tauri desktop app from v1 to v2 ([b900295](https://github.com/dev-murphy/formjam/commit/b9002954d3685364ccd851d2ec44dd29fc202abc))
+
 ## [1.10.0](https://github.com/dev-murphy/formjam/compare/v1.9.0...v1.10.0) (2026-06-21)
 
 

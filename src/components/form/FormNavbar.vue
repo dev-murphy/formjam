@@ -1,21 +1,58 @@
 <script lang="ts" setup>
-import { computed, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
 
 import { useFormStore } from "@/store/forms";
 import { useQuestionStore } from "@/store/questions";
+import { useSettingsStore } from "@/store/settings";
 
 import IconEyeOpen from "@/components/icons/input/EyeOpen.vue";
+import IconShareLink from "@/components/icons/controls/ShareLink.vue";
 import ThemeToggle from "@/components/common/ThemeToggle.vue";
 
 const route = useRoute();
 const formStore = useFormStore();
 const questionStore = useQuestionStore();
+const settingsStore = useSettingsStore();
 
-const currentSection = ref("Questions");
+const formId = computed(() => route.params.formId as string);
+
+const currentForm = computed(() =>
+  formStore.forms.find((form) => form.id === formId.value),
+);
+const isPublished = computed(() => currentForm.value?.status === "published");
+
 function setSection(section: string) {
-  currentSection.value = section;
+  settingsStore.formSections.editSection = section;
 }
+
+async function togglePublish() {
+  await formStore.setStatus(
+    formId.value,
+    isPublished.value ? "draft" : "published",
+  );
+}
+
+const shareUrl = computed(
+  () => `${window.location.origin}/form/${formId.value}/view`,
+);
+
+const copied = ref(false);
+async function copyShareLink() {
+  if (!isPublished.value) return;
+  try {
+    await navigator.clipboard.writeText(shareUrl.value);
+  } catch {
+    // Clipboard unavailable (e.g. insecure context) — fall back to a prompt.
+    window.prompt("Copy this link:", shareUrl.value);
+  }
+  copied.value = true;
+  setTimeout(() => (copied.value = false), 2000);
+}
+
+onMounted(() => {
+  if (!currentForm.value) formStore.fetchForm(formId.value);
+});
 
 const saveStatus = computed(() => {
   if (
@@ -99,19 +136,62 @@ const saveStatus = computed(() => {
       </div>
 
       <ThemeToggle class="ml-auto mr-3" />
-      <RouterLink
+
+      <div
         v-if="route.name === 'EditForm'"
-        :to="`/form/${route.params.formId}/preview`"
+        class="flex items-center gap-x-2"
       >
+        <!-- Share link -->
         <button
-          title="View Form"
-          class="custom-btn flex gap-x-2 p-2 rounded-lg"
-          data-cy="preview_btn"
+          type="button"
+          :disabled="!isPublished"
+          :title="
+            isPublished
+              ? 'Copy shareable link'
+              : 'Publish your form to share it'
+          "
+          class="flex items-center gap-x-2 rounded-lg border border-gray-300 p-2 text-neutral-700 transition enabled:hover:border-sky-400 enabled:hover:text-sky-500 disabled:cursor-not-allowed disabled:opacity-40 dark:border-neutral-600 dark:text-white"
+          data-cy="share_btn"
+          @click="copyShareLink"
         >
-          <IconEyeOpen class="w-6 h-6 sm:mr-1" />
-          <span class="hidden sm:block"> Preview </span>
+          <IconShareLink class="w-5 h-5" />
+          <span class="hidden sm:block">
+            {{ copied ? "Copied!" : "Share" }}
+          </span>
         </button>
-      </RouterLink>
+
+        <!-- Publish toggle -->
+        <button
+          type="button"
+          :title="isPublished ? 'Unpublish form' : 'Publish form'"
+          class="flex items-center gap-x-2 rounded-lg p-2 font-medium transition"
+          :class="
+            isPublished
+              ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200 dark:bg-emerald-500/15 dark:text-emerald-400'
+              : 'custom-btn'
+          "
+          data-cy="publish_btn"
+          @click="togglePublish"
+        >
+          <span
+            v-if="isPublished"
+            class="h-2 w-2 rounded-full bg-emerald-500"
+          ></span>
+          <span>{{ isPublished ? "Published" : "Publish" }}</span>
+        </button>
+
+        <!-- Preview -->
+        <RouterLink :to="`/form/${formId}/preview`">
+          <button
+            title="Preview Form"
+            class="custom-btn flex gap-x-2 p-2 rounded-lg"
+            data-cy="preview_btn"
+          >
+            <IconEyeOpen class="w-6 h-6 sm:mr-1" />
+            <span class="hidden sm:block"> Preview </span>
+          </button>
+        </RouterLink>
+      </div>
     </div>
     <div
       v-if="route.name === 'EditForm'"
@@ -122,14 +202,18 @@ const saveStatus = computed(() => {
       >
         <button
           class="w-[120px] font-medium tracking-wide"
-          :class="{ 'text-sky-500': currentSection === 'Questions' }"
+          :class="{
+            'text-sky-500': settingsStore.formSections.editSection === 'Questions',
+          }"
           @click="setSection('Questions')"
         >
           Questions
         </button>
         <button
           class="w-[120px] font-medium tracking-wide"
-          :class="{ 'text-sky-500': currentSection === 'Responses' }"
+          :class="{
+            'text-sky-500': settingsStore.formSections.editSection === 'Responses',
+          }"
           @click="setSection('Responses')"
         >
           Responses
@@ -137,8 +221,10 @@ const saveStatus = computed(() => {
         <div
           class="absolute bottom-0 flex justify-center w-[120px] transition duration-75"
           :class="{
-            'translate-x-full': currentSection === 'Responses',
-            'translate-x-0': currentSection === 'Questions',
+            'translate-x-full':
+              settingsStore.formSections.editSection === 'Responses',
+            'translate-x-0':
+              settingsStore.formSections.editSection === 'Questions',
           }"
         >
           <div class="w-2/3 h-1.5 bg-sky-500 rounded-t-md"></div>

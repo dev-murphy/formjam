@@ -15,6 +15,10 @@ jobs:
     steps:
       - uses: google-github-actions/release-please-action@v3
         with:
+          # PAT (not the default GITHUB_TOKEN) so the tag/release this action
+          # creates can trigger the Release Desktop App workflow. Events made by
+          # GITHUB_TOKEN are suppressed by GitHub to avoid workflow recursion.
+          token: ${{ secrets.RELEASE_PLEASE_PAT }}
           release-type: node
           package-name: ${{ secrets.PACKAGE_NAME }}
           changelog-types: '[{"type":"feat","section":"Features","hidden":false},{"type":"fix","section":"Bug Fixes","hidden":false},{"type":"chore","section":"Miscellaneous","hidden":false},{"type":"docs","section":"Documentation","hidden":false},{"type":"refactor","section":"Code Refactors","hidden":false},{"type":"test","section":"Tests","hidden":false},{"type":"ci","section":"CI/CD","hidden":false},{"type":"revert","section":"Reverts","hidden":false},{"type":"style","section":"UI Updates","hidden":false},{"type":"build","section":"Build System","hidden":false},{"type":"perf","section":"Performance Improvements","hidden":false},{"type":"improvement","section":"Improvements","hidden":false}]'

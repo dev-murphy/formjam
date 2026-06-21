@@ -13,7 +13,7 @@ jobs:
   release-please:
     runs-on: ubuntu-latest
     steps:
-      - uses: google-github-actions/release-please-action@v3
+      - uses: google-github-actions/release-please-action@v4
         with:
           # PAT (not the default GITHUB_TOKEN) so the tag/release this action
           # creates can trigger the Release Desktop App workflow. Events made by

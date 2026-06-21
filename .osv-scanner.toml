@@ -1,0 +1,60 @@
+# osv-scanner suppressions — kept in sync with src-tauri/deny.toml.
+# These are the known, upstream-blocked advisories documented in
+# src-tauri/SECURITY_AUDIT.md: all `unmaintained`/`unsound`, all pinned
+# transitively by Tauri 2.x's GTK3 Linux backend or its build-time codegen,
+# none exploitable, none fixable within Tauri 2.x. Prune as upstream resolves them.
+
+[[IgnoredVulns]]
+id = "RUSTSEC-2024-0429" # glib VariantStrIter unsoundness (Linux-only, not reachable)
+reason = "No fix within Tauri 2.x (GTK3 pins glib 0.18); vulnerable API unused; Linux-only."
+
+[[IgnoredVulns]]
+id = "RUSTSEC-2024-0411" # gdkwayland-sys unmaintained
+reason = "gtk-rs GTK3 bindings unmaintained; Linux-only, pinned by Tauri 2.x."
+[[IgnoredVulns]]
+id = "RUSTSEC-2024-0412" # gdk
+reason = "gtk-rs GTK3 bindings unmaintained; Linux-only, pinned by Tauri 2.x."
+[[IgnoredVulns]]
+id = "RUSTSEC-2024-0413" # atk
+reason = "gtk-rs GTK3 bindings unmaintained; Linux-only, pinned by Tauri 2.x."
+[[IgnoredVulns]]
+id = "RUSTSEC-2024-0414" # gdkx11-sys
+reason = "gtk-rs GTK3 bindings unmaintained; Linux-only, pinned by Tauri 2.x."
+[[IgnoredVulns]]
+id = "RUSTSEC-2024-0415" # gtk
+reason = "gtk-rs GTK3 bindings unmaintained; Linux-only, pinned by Tauri 2.x."
+[[IgnoredVulns]]
+id = "RUSTSEC-2024-0416" # atk-sys
+reason = "gtk-rs GTK3 bindings unmaintained; Linux-only, pinned by Tauri 2.x."
+[[IgnoredVulns]]
+id = "RUSTSEC-2024-0417" # gdkx11
+reason = "gtk-rs GTK3 bindings unmaintained; Linux-only, pinned by Tauri 2.x."
+[[IgnoredVulns]]
+id = "RUSTSEC-2024-0418" # gdk-sys
+reason = "gtk-rs GTK3 bindings unmaintained; Linux-only, pinned by Tauri 2.x."
+[[IgnoredVulns]]
+id = "RUSTSEC-2024-0419" # gtk3-macros
+reason = "gtk-rs GTK3 bindings unmaintained; Linux-only, pinned by Tauri 2.x."
+[[IgnoredVulns]]
+id = "RUSTSEC-2024-0420" # gtk-sys
+reason = "gtk-rs GTK3 bindings unmaintained; Linux-only, pinned by Tauri 2.x."
+
+[[IgnoredVulns]]
+id = "RUSTSEC-2024-0370" # proc-macro-error unmaintained
+reason = "Build-time only (via glib-macros); not shipped in binary."
+
+[[IgnoredVulns]]
+id = "RUSTSEC-2025-0075" # unic-char-range
+reason = "Unmaintained Unicode tables; build-time only via urlpattern -> tauri-utils."
+[[IgnoredVulns]]
+id = "RUSTSEC-2025-0080" # unic-common
+reason = "Unmaintained Unicode tables; build-time only via urlpattern -> tauri-utils."
+[[IgnoredVulns]]
+id = "RUSTSEC-2025-0081" # unic-char-property
+reason = "Unmaintained Unicode tables; build-time only via urlpattern -> tauri-utils."
+[[IgnoredVulns]]
+id = "RUSTSEC-2025-0098" # unic-ucd-version
+reason = "Unmaintained Unicode tables; build-time only via urlpattern -> tauri-utils."
+[[IgnoredVulns]]
+id = "RUSTSEC-2025-0100" # unic-ucd-ident
+reason = "Unmaintained Unicode tables; build-time only via urlpattern -> tauri-utils."

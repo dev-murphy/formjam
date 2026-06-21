@@ -1,0 +1,37 @@
+# Dependabot configuration.
+# Keeps dependencies patched across all three ecosystems this repo uses and
+# opens grouped, low-noise update PRs. Security alerts are raised regardless of
+# this file; this controls the *version-update* PRs and their cadence.
+#
+# Note on the existing glib advisory (RUSTSEC-2024-0429 / GHSA-wrw7-89jp-8q8g):
+# it has no adoptable fix within Tauri 2.x (the GTK3 backend pins glib 0.18).
+# See src-tauri/SECURITY_AUDIT.md. That alert should be dismissed as
+# "tolerable risk" in the Security tab until Tauri ships a GTK4 backend.
+version: 2
+updates:
+  # JavaScript / pnpm frontend
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    groups:
+      tiptap:
+        patterns: ["@tiptap/*"]
+      vue:
+        patterns: ["vue", "vue-router", "pinia", "@vitejs/*", "vue-tsc"]
+      dev-tooling:
+        dependency-type: "development"
+
+  # Rust / Tauri backend
+  - package-ecosystem: "cargo"
+    directory: "/src-tauri"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+
+  # GitHub Actions used by the release + audit workflows
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"

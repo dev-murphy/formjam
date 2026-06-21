@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.11.1](https://github.com/dev-murphy/formjam/compare/v1.11.0...v1.11.1) (2026-06-21)
+
+
+### Miscellaneous
+
+* **security:** add Rust dependency audit, cargo-deny policy, and CI ([ef2e2d0](https://github.com/dev-murphy/formjam/commit/ef2e2d03f60f6ef3c874dae9d10b3f48cc924cbe))
+* **security:** configure Dependabot and osv-scanner suppressions ([d6678a6](https://github.com/dev-murphy/formjam/commit/d6678a6d000a9cdf22738681e9e7d61ab57e16e7))
+
+
+### Build System
+
+* **deps:** bump google-github-actions/release-please-action ([c52ebc1](https://github.com/dev-murphy/formjam/commit/c52ebc127768c7999a6de3bc62bf65e1bfe07126))
+* **deps:** bump nanoid from 5.1.14 to 5.1.15 ([ebf209c](https://github.com/dev-murphy/formjam/commit/ebf209c5dc9bba8e8c32074b21881dcca03fadaf))
+
 ## [1.11.0](https://github.com/dev-murphy/formjam/compare/v1.10.0...v1.11.0) (2026-06-21)
 
 

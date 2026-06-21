@@ -137,10 +137,7 @@ const saveStatus = computed(() => {
 
       <ThemeToggle class="ml-auto mr-3" />
 
-      <div
-        v-if="route.name === 'EditForm'"
-        class="flex items-center gap-x-2"
-      >
+      <div v-if="route.name === 'EditForm'" class="flex items-center gap-x-2">
         <!-- Share link -->
         <button
           type="button"
@@ -203,7 +200,8 @@ const saveStatus = computed(() => {
         <button
           class="w-[120px] font-medium tracking-wide"
           :class="{
-            'text-sky-500': settingsStore.formSections.editSection === 'Questions',
+            'text-sky-500':
+              settingsStore.formSections.editSection === 'Questions',
           }"
           @click="setSection('Questions')"
         >
@@ -212,7 +210,8 @@ const saveStatus = computed(() => {
         <button
           class="w-[120px] font-medium tracking-wide"
           :class="{
-            'text-sky-500': settingsStore.formSections.editSection === 'Responses',
+            'text-sky-500':
+              settingsStore.formSections.editSection === 'Responses',
           }"
           @click="setSection('Responses')"
         >

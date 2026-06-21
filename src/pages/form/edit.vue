@@ -15,7 +15,7 @@ const section = computed(() => settingsStore.formSections.editSection);
   <div class="px-5 pt-5">
     <div class="mx-auto w-full max-w-[1000px]">
       <Response v-if="section === 'Responses'" />
-      <FormQuestionList v-else :form-id="(route.params.formId as string)" />
+      <FormQuestionList v-else :form-id="route.params.formId as string" />
     </div>
   </div>
 </template>

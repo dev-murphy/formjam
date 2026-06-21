@@ -11,9 +11,7 @@ const props = withDefaults(
   { play: true },
 );
 
-const maxCount = computed(() =>
-  Math.max(1, ...props.data.map((d) => d.count)),
-);
+const maxCount = computed(() => Math.max(1, ...props.data.map((d) => d.count)));
 
 const FILL = "linear-gradient(180deg, #38bdf8 0%, #0284c7 100%)";
 </script>
@@ -34,8 +32,7 @@ const FILL = "linear-gradient(180deg, #38bdf8 0%, #0284c7 100%)";
         <div
           class="w-full max-w-[46px] rounded-t-md transition-[height] duration-700 ease-out"
           :style="{
-            height:
-              (play ? (d.count / maxCount) * 140 : 0) + 'px',
+            height: (play ? (d.count / maxCount) * 140 : 0) + 'px',
             transitionDelay: i * 60 + 'ms',
             background: FILL,
           }"

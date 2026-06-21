@@ -1,5 +1,69 @@
 # Changelog
 
+## [1.10.0](https://github.com/dev-murphy/formjam/compare/v1.9.0...v1.10.0) (2026-06-21)
+
+
+### Features
+
+* add question validation config and new question types ([20de926](https://github.com/dev-murphy/formjam/commit/20de926b3dc121df26b84794ca627e061eb2d61e))
+* added response heading and response section ([8c8124f](https://github.com/dev-murphy/formjam/commit/8c8124fa34c35b360c3cee0b812e08880a41b2a6))
+* dismiss dropdown and share modal on outside click ([7299f87](https://github.com/dev-murphy/formjam/commit/7299f87a994173ca5b4d673d6bc267732e7ee5af))
+* validate preview answers and guard number input ([6b0d18c](https://github.com/dev-murphy/formjam/commit/6b0d18c7fe2c74c70a924bfb8d0a10f25ae683e3))
+
+
+### Bug Fixes
+
+* persist multiple-choice options and resolve type errors ([80c6ff5](https://github.com/dev-murphy/formjam/commit/80c6ff54f1db692dd7fdbd1cf2fdb33bf1a49c49))
+* resolve breaking changes from Pinia 3, TipTap 3, and PocketBase 0.27 ([dc5cf54](https://github.com/dev-murphy/formjam/commit/dc5cf54af70119d46c4d4e40c1c13e383e6348aa))
+* sync pnpm-lock.yaml specifier for @playwright/test to match package.json ([ec899da](https://github.com/dev-murphy/formjam/commit/ec899da5198d060f29de1c15e51ce044fb9341cf))
+* update PrimeVue 4 theme to use preset-based configuration ([d629ea8](https://github.com/dev-murphy/formjam/commit/d629ea8e2412c10ed46aa5999d02b29a755fe46b))
+
+
+### Miscellaneous
+
+* add PocketBase API rules migration ([87ab62a](https://github.com/dev-murphy/formjam/commit/87ab62a99b0743d74423f9157f7a708390d9e497))
+* added sections to settings store ([31ca2cd](https://github.com/dev-murphy/formjam/commit/31ca2cdb5846798424126a795cd67161b9db934b))
+* hid elements in form navbar based on routes ([ce68ce9](https://github.com/dev-murphy/formjam/commit/ce68ce9bcab93dc1421c9a67237b750f454fbfd7))
+* **main:** formatted codebase ([e758726](https://github.com/dev-murphy/formjam/commit/e7587260bb4fd875ffa8ae1f3b8b722b2e4d17b0))
+* **main:** formatted codebase ([c7f6527](https://github.com/dev-murphy/formjam/commit/c7f6527cc3f3c68d7f1f00fd2ef4475644aa4a0d))
+* **main:** formatted codebase ([485e894](https://github.com/dev-murphy/formjam/commit/485e89430ed21be59beaf64833922dae6d89b6b2))
+* migrate from Cypress to Playwright with parallel execution ([a9282cc](https://github.com/dev-murphy/formjam/commit/a9282cc1f05cd63ec2f7497ab3cf2bc2bf663b67))
+* migrate Tailwind CSS from v3 to v4 ([55412ba](https://github.com/dev-murphy/formjam/commit/55412ba90d2b0ada361550e4ed0f053fbae45cbc))
+* pin Node.js version to 22 ([3eecc39](https://github.com/dev-murphy/formjam/commit/3eecc39eafb8fc7f261904897c40f7a6d0252df8))
+* remove Cypress config and spec files ([c5ba726](https://github.com/dev-murphy/formjam/commit/c5ba726511df7414dbc641c881517895b490c1a5))
+* removed change password section from profile page ([6696ee4](https://github.com/dev-murphy/formjam/commit/6696ee48d463afeb380a5f5700fe466552b1bd40))
+* upgrade all dependencies to latest and pin exact versions ([81eea6a](https://github.com/dev-murphy/formjam/commit/81eea6a16b27dda9a5b024caddd7e4f084895f3f))
+
+
+### Documentation
+
+* add database schema notes ([95136cc](https://github.com/dev-murphy/formjam/commit/95136cc92558a6a7a58f04bbc1f70defced2b603))
+
+
+### Code Refactors
+
+* created page title util function ([c65a3e2](https://github.com/dev-murphy/formjam/commit/c65a3e2d3feb8d5e996f3761051fa186413bab12))
+* updated theme styles for text based question types ([a2e0ea4](https://github.com/dev-murphy/formjam/commit/a2e0ea45992f2eab50799b3a7bc68b8af13eb1b3))
+
+
+### Tests
+
+* add e2e coverage for all question type validations ([72c3f85](https://github.com/dev-murphy/formjam/commit/72c3f857656825820f533dc5c572f15cdf96a0dc))
+* skip local dev server when targeting a deployed URL ([fd9926e](https://github.com/dev-murphy/formjam/commit/fd9926e452122b99a7bb802e10646cb36e188281))
+* stabilize auth e2e and add test-data cleanup ([d161018](https://github.com/dev-murphy/formjam/commit/d161018d6d95b9085936fd595c8bdcb41546e0ac))
+
+
+### CI/CD
+
+* pass pocketbase and superuser secrets to Playwright job ([498ca9e](https://github.com/dev-murphy/formjam/commit/498ca9e5887267293115b80d70ad6e5a45839ce1))
+* replace Cypress workflow with Playwright ([f29bd2d](https://github.com/dev-murphy/formjam/commit/f29bd2ddb6cbdae7522f7183fa55d39d4eddaa2b))
+* run e2e against the branch build, not the deployed URL ([1bb2085](https://github.com/dev-murphy/formjam/commit/1bb2085fd6828294eda611c2b5d532e07e89d26b))
+
+
+### UI Updates
+
+* correct dark/light theming across components and pages ([557adb0](https://github.com/dev-murphy/formjam/commit/557adb0f5896c74d54bc94607285ba8d7bd03a37))
+
 ## [1.9.0](https://github.com/M-Facey/formjam/compare/v1.8.3...v1.9.0) (2023-12-20)
 
 

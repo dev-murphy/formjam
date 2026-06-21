@@ -1,0 +1,62 @@
+# cargo-deny configuration for the FormJAM Tauri backend.
+# Run locally with:  cargo deny check
+# See SECURITY_AUDIT.md for the rationale behind every allow-listed advisory.
+
+[advisories]
+# Fail on any *new* security vulnerability. The IDs below are the known,
+# upstream-blocked advisories documented in SECURITY_AUDIT.md (2026-06-21):
+# all are `unmaintained`/`unsound` warnings pinned transitively by Tauri 2.x's
+# GTK3 Linux backend or its build-time codegen — none are exploitable and none
+# have an adoptable fix within Tauri 2.x. Prune this list as upstream resolves them.
+ignore = [
+    # glib VariantStrIter unsoundness (Linux-only, not reachable from app code)
+    "RUSTSEC-2024-0429",
+    # gtk-rs GTK3 bindings — unmaintained (Linux-only, via Tauri's gtk backend)
+    "RUSTSEC-2024-0411", # gdkwayland-sys
+    "RUSTSEC-2024-0412", # gdk
+    "RUSTSEC-2024-0413", # atk
+    "RUSTSEC-2024-0414", # gdkx11-sys
+    "RUSTSEC-2024-0415", # gtk
+    "RUSTSEC-2024-0416", # atk-sys
+    "RUSTSEC-2024-0417", # gdkx11
+    "RUSTSEC-2024-0418", # gdk-sys
+    "RUSTSEC-2024-0419", # gtk3-macros
+    "RUSTSEC-2024-0420", # gtk-sys
+    # proc-macro-error — unmaintained (build-time only, via glib-macros)
+    "RUSTSEC-2024-0370",
+    # unic-* — unmaintained Unicode tables (build-time, via urlpattern -> tauri-utils)
+    "RUSTSEC-2025-0075", # unic-char-range
+    "RUSTSEC-2025-0080", # unic-common
+    "RUSTSEC-2025-0081", # unic-char-property
+    "RUSTSEC-2025-0098", # unic-ucd-version
+    "RUSTSEC-2025-0100", # unic-ucd-ident
+]
+
+[bans]
+multiple-versions = "warn"
+wildcards = "allow"
+
+[licenses]
+# Permissive licenses expected across the Tauri/Rust ecosystem.
+allow = [
+    "MIT",
+    "Apache-2.0",
+    "Apache-2.0 WITH LLVM-exception",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "ISC",
+    "Unicode-3.0",
+    "Unicode-DFS-2016",
+    "Zlib",
+    "MPL-2.0",
+    "CC0-1.0",
+]
+confidence-threshold = 0.8
+
+# The workspace app crate itself is unlicensed and never published; skip it.
+private = { ignore = true }
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"
+allow-registry = ["https://github.com/rust-lang/crates.io-index"]

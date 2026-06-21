@@ -108,8 +108,8 @@ const router = createRouter({
           name: "PreviewForm",
           component: () => import("@/pages/form/preview.vue"),
           meta: {
-            authRequired: true
-          }
+            authRequired: true,
+          },
         },
         {
           path: "success",

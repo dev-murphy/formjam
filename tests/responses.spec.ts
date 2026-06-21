@@ -138,13 +138,53 @@ function buildChoices(): QuestionChoice[] {
 // Three completed submissions. r-3 deliberately omits a comment so the
 // "answered" rate and per-question respondent counts differ from the total.
 const RESPONSES: Response[] = [
-  { id: "r-1", form: FORM_ID, respondent: "u1", is_complete: true, submitted_at: "2026-06-20T10:00:00Z", ...meta, collectionId: "responses", collectionName: "responses" },
-  { id: "r-2", form: FORM_ID, respondent: "u2", is_complete: true, submitted_at: "2026-06-19T10:00:00Z", ...meta, collectionId: "responses", collectionName: "responses" },
-  { id: "r-3", form: FORM_ID, respondent: "u3", is_complete: true, submitted_at: "2026-06-18T10:00:00Z", ...meta, collectionId: "responses", collectionName: "responses" },
+  {
+    id: "r-1",
+    form: FORM_ID,
+    respondent: "u1",
+    is_complete: true,
+    submitted_at: "2026-06-20T10:00:00Z",
+    ...meta,
+    collectionId: "responses",
+    collectionName: "responses",
+  },
+  {
+    id: "r-2",
+    form: FORM_ID,
+    respondent: "u2",
+    is_complete: true,
+    submitted_at: "2026-06-19T10:00:00Z",
+    ...meta,
+    collectionId: "responses",
+    collectionName: "responses",
+  },
+  {
+    id: "r-3",
+    form: FORM_ID,
+    respondent: "u3",
+    is_complete: true,
+    submitted_at: "2026-06-18T10:00:00Z",
+    ...meta,
+    collectionId: "responses",
+    collectionName: "responses",
+  },
 ];
 
-function answer(id: string, response: string, question: string, value: ResponseAnswer["value"]): ResponseAnswer {
-  return { id, response, question, value, ...meta, collectionId: "response_answers", collectionName: "response_answers" };
+function answer(
+  id: string,
+  response: string,
+  question: string,
+  value: ResponseAnswer["value"],
+): ResponseAnswer {
+  return {
+    id,
+    response,
+    question,
+    value,
+    ...meta,
+    collectionId: "response_answers",
+    collectionName: "response_answers",
+  };
 }
 
 const ANSWERS: ResponseAnswer[] = [
@@ -214,7 +254,9 @@ async function gotoEdit(page: Page, seed: Seed = {}) {
 // heading to render. The tab only appears on the EditForm route.
 async function openResponses(page: Page) {
   await page.getByRole("button", { name: "Responses", exact: true }).click();
-  await expect(page.getByRole("heading", { name: /Responses?$/ })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: /Responses?$/ }),
+  ).toBeVisible();
 }
 
 test.beforeEach(async ({ page }) => {
@@ -319,6 +361,8 @@ test.describe("Publish & share controls", () => {
 
     // Copying the link gives transient "Copied!" feedback.
     await page.locator('[data-cy="share_btn"]').click();
-    await expect(page.locator('[data-cy="share_btn"]')).toContainText("Copied!");
+    await expect(page.locator('[data-cy="share_btn"]')).toContainText(
+      "Copied!",
+    );
   });
 });

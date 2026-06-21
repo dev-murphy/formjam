@@ -20,7 +20,9 @@ const FILL = "linear-gradient(90deg, #38bdf8 0%, #0284c7 100%)";
         <span class="truncate pr-2 text-neutral-700 dark:text-neutral-200">
           {{ d.label }}
         </span>
-        <span class="shrink-0 tabular-nums text-neutral-500 dark:text-neutral-400">
+        <span
+          class="shrink-0 tabular-nums text-neutral-500 dark:text-neutral-400"
+        >
           <CountUp :value="d.count" :play="play" /> · {{ d.percent }}%
         </span>
       </div>

@@ -98,6 +98,10 @@ const router = createRouter({
           path: "view",
           name: "ViewForm",
           component: () => import("@/pages/form/view.vue"),
+          // Public so shared links can collect responses without a login.
+          meta: {
+            authRequired: false,
+          },
         },
         {
           path: "preview",

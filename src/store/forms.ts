@@ -77,6 +77,37 @@ export const useFormStore = defineStore("forms", {
       await pb.collection("forms").update(form.id, form);
       this.fetchForms();
     },
+
+    // Load a single form into the store when navigating straight to an editor
+    // route without going through the dashboard list first.
+    async fetchForm(formId: string) {
+      const form = await pb.collection("forms").getOne<Form>(formId);
+      const index = this.forms.findIndex((f) => f.id === formId);
+      if (index === -1) this.forms.push(form);
+      else this.forms[index] = form;
+      return form;
+    },
+
+    async setStatus(formId: string, status: Form["status"]) {
+      this.saveStatus = "saving";
+      try {
+        const updated = await pb
+          .collection("forms")
+          .update<Form>(formId, { status });
+        const index = this.forms.findIndex((f) => f.id === formId);
+        if (index === -1) this.forms.push(updated);
+        else this.forms[index] = updated;
+        this.saveStatus = "saved";
+        setTimeout(() => {
+          if (this.saveStatus === "saved") this.saveStatus = "idle";
+        }, 2000);
+      } catch {
+        this.saveStatus = "error";
+        setTimeout(() => {
+          if (this.saveStatus === "error") this.saveStatus = "idle";
+        }, 3000);
+      }
+    },
     async deleteForm(formId: string) {
       await pb.collection("forms").delete(formId);
       this.fetchForms();

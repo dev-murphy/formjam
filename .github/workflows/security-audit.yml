@@ -1,0 +1,57 @@
+name: Rust Security Audit
+
+# Scans the Tauri backend's Rust dependencies for security advisories.
+# - cargo audit : fails on any NEW RustSec vulnerability (known/accepted ones
+#                 are documented in src-tauri/SECURITY_AUDIT.md).
+# - cargo deny  : enforces the advisory + license + source policy in
+#                 src-tauri/deny.toml.
+#
+# Runs on changes to the Rust manifests/lockfile, and weekly so freshly
+# published advisories against already-pinned versions are caught.
+
+on:
+  push:
+    paths:
+      - "src-tauri/Cargo.toml"
+      - "src-tauri/Cargo.lock"
+      - "src-tauri/deny.toml"
+      - ".github/workflows/security-audit.yml"
+  pull_request:
+    paths:
+      - "src-tauri/Cargo.toml"
+      - "src-tauri/Cargo.lock"
+      - "src-tauri/deny.toml"
+  schedule:
+    - cron: "0 6 * * 1" # Mondays 06:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: src-tauri
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: cargo audit
+        uses: rustsec/audit-check@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          working-directory: src-tauri
+
+  deny:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: cargo deny
+        uses: EmbarkStudios/cargo-deny-action@v2
+        with:
+          manifest-path: src-tauri/Cargo.toml
+          command: check advisories bans licenses sources

@@ -18,7 +18,7 @@ jobs:
           fetch-depth: 0
 
       - name: Prettify code
-        uses: creyD/prettier_action@v4.3
+        uses: creyD/prettier_action@v4.6
         with:
           prettier_options: --write **/*.{vue,ts,js}
           commit_message: "chore(main): formatted codebase"

@@ -14,19 +14,41 @@ export interface QuestionChoice extends BaseCollectionType {
   order: number;
 }
 
+export type QuestionType =
+  | "short_text"
+  | "long_text"
+  | "single_choice"
+  | "multiple_choice"
+  | "dropdown"
+  | "linear_scale"
+  | "number"
+  | "email"
+  | "date"
+  | "rating";
+
+export interface QuestionValidation {
+  enabled: boolean;
+  category: string; // key into VALIDATION_RULES, e.g. "number", "text"
+  condition: string; // condition key, e.g. "gt", "atLeast"
+  value: string; // primary operand
+  value2?: string; // upper bound for between / notBetween
+  errorMessage: string; // optional custom message shown to the respondent
+}
+
+// Per-question settings blob persisted as a single JSON field on the
+// `questions` collection. Validation config lives here so it stays grouped with
+// future per-question options.
+export interface QuestionSettings {
+  validation?: QuestionValidation | null;
+}
+
 export interface Question extends BaseCollectionType {
   label: string;
   description: string;
-  type:
-    | "short_text"
-    | "long_text"
-    | "single_choice"
-    | "multiple_choice"
-    | "dropdown"
-    | "linear_scale";
+  type: QuestionType;
   order: number;
   required: boolean;
-  settings: Record<string, unknown>;
+  settings: QuestionSettings;
   form: string;
   expand?: {
     question_choices: QuestionChoice[];

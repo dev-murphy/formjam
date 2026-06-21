@@ -6,7 +6,9 @@ import type { LocalAnswer, AnswerValue } from "@/types/form";
 import pb from "@/db/pocketBase";
 
 import debounce from "@/utils/debouncer";
+import { preventNonNumericInput } from "@/utils/common";
 import { setupParagraphInputs } from "@/utils/form";
+import { validateAnswer } from "@/utils/validation";
 
 import { useFormStore } from "@/store/forms";
 import { useQuestionStore } from "@/store/questions";
@@ -27,6 +29,8 @@ const formTitle = ref("");
 const responseId = ref("");
 // keyed by question.id → { recordId: response_answers.id, value }
 const localAnswers = ref<Record<string, LocalAnswer>>({});
+// validation errors keyed by question.id
+const errors = ref<Record<string, string>>({});
 
 const title = computed(() => {
   const elem = document.createElement("h1");
@@ -113,7 +117,22 @@ async function loadExistingResponse(existingResponseId: string) {
   }
 }
 
+function validateForm(): boolean {
+  const next: Record<string, string> = {};
+  for (const question of questionStore.questions) {
+    const validation = question.settings?.validation;
+    if (!validation?.enabled) continue;
+    const answer = localAnswers.value[question.id]?.value ?? "";
+    const error = validateAnswer(answer, validation);
+    if (error) next[question.id] = error;
+  }
+  errors.value = next;
+  return Object.keys(next).length === 0;
+}
+
 async function submit() {
+  if (!validateForm()) return;
+
   settingsStore.formData.is_submitted = true;
 
   await pb.collection("responses").update(responseId.value, {
@@ -163,7 +182,12 @@ onMounted(async () => {
       <div
         v-for="question in questionStore.questions"
         :key="question.id"
-        class="w-full dark:bg-neutral-700 flex flex-col border border-gray-300 dark:border-transparent p-4 mx-auto shadow-md rounded-lg"
+        class="w-full dark:bg-neutral-700 flex flex-col border p-4 mx-auto shadow-md rounded-lg"
+        :class="
+          errors[question.id]
+            ? 'border-red-400'
+            : 'border-gray-300 dark:border-transparent'
+        "
       >
         <h2
           v-html="
@@ -210,6 +234,74 @@ onMounted(async () => {
               data-lpignore="true"
               class="w-full h-8 bg-transparent py-2 border-b border-gray-200 hover:border-gray-400 focus:border-sky-500 dark:placeholder:text-neutral-400 dark:text-white resize-none outline-none"
             />
+          </div>
+
+          <div
+            v-if="question.type === 'number'"
+            class="flex items-center gap-x-3"
+          >
+            <p class="font-rokkitt text-[26px] dark:text-sky-400">#</p>
+            <input
+              type="number"
+              v-model="localAnswers[question.id].value"
+              @input="delete errors[question.id]"
+              @keydown="preventNonNumericInput"
+              placeholder="Enter a number"
+              class="w-full bg-transparent py-2 border-b border-gray-200 hover:border-gray-400 focus:border-sky-500 dark:placeholder:text-neutral-400 dark:text-white outline-none"
+              @keypress.enter.prevent
+            />
+          </div>
+
+          <div
+            v-if="question.type === 'email'"
+            class="flex items-center gap-x-3"
+          >
+            <p class="font-rokkitt text-[26px] dark:text-sky-400">@</p>
+            <input
+              type="email"
+              v-model="localAnswers[question.id].value"
+              @input="delete errors[question.id]"
+              placeholder="email@example.com"
+              class="w-full bg-transparent py-2 border-b border-gray-200 hover:border-gray-400 focus:border-sky-500 dark:placeholder:text-neutral-400 dark:text-white outline-none"
+              @keypress.enter.prevent
+            />
+          </div>
+
+          <div
+            v-if="question.type === 'date'"
+            class="flex items-center gap-x-3"
+          >
+            <p class="font-rokkitt text-[26px] dark:text-sky-400">D</p>
+            <input
+              type="date"
+              v-model="localAnswers[question.id].value"
+              @input="delete errors[question.id]"
+              class="w-full bg-transparent py-2 border-b border-gray-200 hover:border-gray-400 focus:border-sky-500 dark:text-white outline-none"
+            />
+          </div>
+
+          <div
+            v-if="question.type === 'rating'"
+            class="flex items-center gap-1"
+          >
+            <button
+              v-for="n in 5"
+              :key="n"
+              type="button"
+              @click="
+                localAnswers[question.id].value = String(n);
+                delete errors[question.id];
+              "
+              class="text-3xl leading-none transition-colors"
+              :class="
+                n <= Number(localAnswers[question.id].value)
+                  ? 'text-yellow-400'
+                  : 'text-gray-300 hover:text-yellow-200'
+              "
+              :aria-label="`Rate ${n}`"
+            >
+              ★
+            </button>
           </div>
 
           <template
@@ -284,6 +376,10 @@ onMounted(async () => {
             </label>
           </div>
         </div>
+
+        <p v-if="errors[question.id]" class="mt-2 text-sm text-red-500">
+          {{ errors[question.id] }}
+        </p>
       </div>
 
       <div class="flex justify-between">
